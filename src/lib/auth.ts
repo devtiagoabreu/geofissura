@@ -18,7 +18,6 @@ export const authOptions: NextAuthOptions = {
 
         const user = await db.query.usuarios.findFirst({
           where: eq(usuarios.email, credentials.email as string),
-          with: { tenant: true },
         })
 
         if (!user || !bcrypt.compareSync(credentials.password as string, user.password)) {

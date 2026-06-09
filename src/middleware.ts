@@ -5,6 +5,7 @@ export default withAuth({
     authorized({ req, token }) {
       const { pathname } = req.nextUrl
       const isPublic =
+        pathname === "/" ||
         pathname.startsWith("/login") ||
         pathname.startsWith("/register") ||
         pathname.startsWith("/api/auth")
