@@ -179,26 +179,26 @@ export function LandingPage() {
       </header>
 
       <main className="flex-1">
-        <section className="relative overflow-hidden pt-24 md:pt-32">
+        <section className="relative overflow-hidden bg-[#030712] pt-24 md:pt-32">
           <NeonBackground />
           <div className="absolute inset-0 -z-10">
-            <div className="absolute -top-40 right-0 h-[500px] w-[500px] rounded-full bg-[var(--brand)]/10 blur-3xl" />
-            <div className="absolute -bottom-40 left-0 h-[400px] w-[400px] rounded-full bg-violet-500/10 blur-3xl" />
+            <div className="absolute -top-40 right-0 h-[500px] w-[500px] rounded-full bg-emerald-500/10 blur-3xl" />
+            <div className="absolute -bottom-40 left-0 h-[400px] w-[400px] rounded-full bg-emerald-500/10 blur-3xl" />
           </div>
 
           <div className="mx-auto max-w-7xl px-4 pb-20 md:px-6 md:pb-32">
             <div className="mx-auto max-w-3xl text-center">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg-secondary)] px-4 py-1.5 text-xs font-medium text-[var(--text-secondary)]">
-                <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium text-white/70">
+                <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
                 Sistema em produção — 500+ edificações monitoradas
               </div>
 
-              <h1 className="text-4xl font-bold tracking-tight md:text-6xl lg:text-7xl">
+              <h1 className="text-3xl font-bold tracking-tight text-white md:text-5xl lg:text-6xl">
                 Monitoramento inteligente de{" "}
                 <span className="gradient-text">edificações</span>
               </h1>
 
-              <p className="mt-6 text-lg text-[var(--text-secondary)] md:text-xl">
+              <p className="mt-4 text-base text-white/60 md:text-lg">
                 Plataforma completa para monitoramento de fissuras, trincas e
                 movimentações estruturais com sensores IoT, alertas em tempo real
                 e relatórios automáticos.
@@ -234,15 +234,15 @@ export function LandingPage() {
               </div>
             </div>
 
-            <div className="mt-16 rounded-2xl border border-[var(--border)] bg-[var(--bg-secondary)] p-2 shadow-2xl">
-              <div className="overflow-hidden rounded-xl bg-[var(--bg-primary)]">
-                <div className="flex items-center gap-2 border-b border-[var(--border)] px-4 py-3">
+            <div className="mt-16 rounded-2xl border border-white/10 bg-white/5 p-2 shadow-2xl">
+              <div className="overflow-hidden rounded-xl bg-[#0a0f1a]">
+                <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
                   <div className="h-3 w-3 rounded-full bg-red-500" />
                   <div className="h-3 w-3 rounded-full bg-yellow-500" />
-                  <div className="h-3 w-3 rounded-full bg-green-500" />
-                  <span className="ml-2 text-xs text-[var(--text-secondary)]">Dashboard — Edifício Comercial Aurora</span>
+                  <div className="h-3 w-3 rounded-full bg-emerald-500" />
+                  <span className="ml-2 text-xs text-white/40">Dashboard — Edifício Comercial Aurora</span>
                 </div>
-                <div className="grid grid-cols-3 gap-px bg-[var(--border)]">
+                <div className="grid grid-cols-3 gap-px bg-white/10">
                   {[
                     { label: "Fissura #01", value: "2.4mm", status: "normal" },
                     { label: "Inclinação", value: "0.02°", status: "normal" },
@@ -251,25 +251,25 @@ export function LandingPage() {
                     { label: "Temperatura", value: "26°C", status: "normal" },
                     { label: "Pressão", value: "1.02 bar", status: "normal" },
                   ].map((item) => (
-                    <div key={item.label} className="bg-[var(--bg-primary)] p-4 md:p-6">
-                      <p className="text-xs text-[var(--text-secondary)]">{item.label}</p>
-                      <p className="mt-1 text-2xl font-bold md:text-3xl">{item.value}</p>
+                    <div key={item.label} className="bg-[#0a0f1a] p-4 md:p-6">
+                      <p className="text-xs text-white/40">{item.label}</p>
+                      <p className="mt-1 text-2xl font-bold text-white md:text-3xl">{item.value}</p>
                       <span
                         className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
                           item.status === "normal"
-                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                            ? "bg-emerald-500/10 text-emerald-400"
                             : item.status === "alerta"
-                              ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                              : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                              ? "bg-yellow-500/10 text-yellow-400"
+                              : "bg-red-500/10 text-red-400"
                         }`}
                       >
                         <div
                           className={`h-1.5 w-1.5 rounded-full ${
                             item.status === "normal"
-                              ? "bg-green-500"
+                              ? "bg-emerald-400"
                               : item.status === "alerta"
-                                ? "bg-yellow-500"
-                                : "bg-red-500"
+                                ? "bg-yellow-400"
+                                : "bg-red-400"
                           }`}
                         />
                         {item.status === "normal" ? "Normal" : item.status === "alerta" ? "Alerta" : "Crítico"}
@@ -354,7 +354,7 @@ export function LandingPage() {
 
         <section className="py-20 md:py-32">
           <div className="mx-auto max-w-7xl px-4 md:px-6">
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--brand)] to-violet-600 px-6 py-16 text-center md:px-16">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 px-6 py-16 text-center md:px-16">
               <div className="absolute inset-0 -z-10">
                 <div className="absolute -right-20 -top-20 h-40 w-40 rounded-full bg-white/10" />
                 <div className="absolute -bottom-20 -left-20 h-60 w-60 rounded-full bg-white/5" />

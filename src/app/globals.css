@@ -52,7 +52,7 @@
   }
 
   .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-[var(--brand)] to-violet-500;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-emerald-600;
   }
 
   @keyframes fadeIn {
