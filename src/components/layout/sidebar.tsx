@@ -12,6 +12,7 @@ import {
   Bell,
   Settings,
   Key,
+  DollarSign,
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 
@@ -51,6 +52,12 @@ const NAV_ITENS = [
     href: "/notificacoes",
     icon: Bell,
     roles: ["SUPER", "ADMIN", "USER"],
+  },
+  {
+    titulo: "Cobrança",
+    href: "/cobranca",
+    icon: DollarSign,
+    roles: ["SUPER"],
   },
   {
     titulo: "Administração",

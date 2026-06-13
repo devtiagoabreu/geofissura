@@ -9,4 +9,4 @@ CREATE TABLE IF NOT EXISTS documentos (
 );
 
 CREATE INDEX IF NOT EXISTS idx_documentos_edificacao ON documentos(edificacao_id);
-CREATE INDEX IF NOT EXISTS idx_documentos_tenant     ON documentos(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_documentos_cliente    ON documentos(cliente_id);

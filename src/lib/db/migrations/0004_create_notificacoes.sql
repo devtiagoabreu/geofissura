@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS notificacoes (
   created_at      TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_notificacoes_tenant     ON notificacoes(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_notificacoes_cliente     ON notificacoes(cliente_id);
 CREATE INDEX IF NOT EXISTS idx_notificacoes_usuario    ON notificacoes(usuario_id);
 CREATE INDEX IF NOT EXISTS idx_notificacoes_lida       ON notificacoes(lida);
-CREATE INDEX IF NOT EXISTS idx_notificacoes_regras_tenant ON notificacoes_regras(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_notificacoes_regras_cliente ON notificacoes_regras(cliente_id);

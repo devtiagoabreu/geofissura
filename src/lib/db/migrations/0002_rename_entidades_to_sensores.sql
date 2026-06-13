@@ -12,7 +12,7 @@ BEGIN
     DROP INDEX IF EXISTS idx_entidades_edificacao;
     DROP INDEX IF EXISTS idx_entidades_tipo;
     DROP INDEX IF EXISTS idx_leituras_entidade;
-    CREATE INDEX IF NOT EXISTS idx_sensores_tenant ON sensores(tenant_id);
+    CREATE INDEX IF NOT EXISTS idx_sensores_cliente ON sensores(cliente_id);
     CREATE INDEX IF NOT EXISTS idx_sensores_edificacao ON sensores(edificacao_id);
     CREATE INDEX IF NOT EXISTS idx_sensores_tipo ON sensores(tipo_sensor);
     CREATE INDEX IF NOT EXISTS idx_leituras_sensor ON leituras(sensor_id);

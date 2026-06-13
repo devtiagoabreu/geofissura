@@ -1,15 +1,24 @@
--- Renomeia tabela tenants para clientes
-ALTER TABLE IF EXISTS tenants RENAME TO clientes;
+-- Renomeia tabela tenants para clientes (apenas se a origem existir e o destino não)
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'tenants') THEN
+    IF NOT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'clientes') THEN
+      ALTER TABLE tenants RENAME TO clientes;
+    ELSE
+      DROP TABLE tenants;
+    END IF;
+  END IF;
+END $$;
 
 -- Renomeia colunas tenant_id para cliente_id em todas as tabelas
-ALTER TABLE IF EXISTS usuarios             RENAME COLUMN tenant_id TO cliente_id;
-ALTER TABLE IF EXISTS edificacoes          RENAME COLUMN tenant_id TO cliente_id;
-ALTER TABLE IF EXISTS sensores             RENAME COLUMN tenant_id TO cliente_id;
-ALTER TABLE IF EXISTS leituras             RENAME COLUMN tenant_id TO cliente_id;
-ALTER TABLE IF EXISTS documentos           RENAME COLUMN tenant_id TO cliente_id;
-ALTER TABLE IF EXISTS notificacoes_config  RENAME COLUMN tenant_id TO cliente_id;
-ALTER TABLE IF EXISTS notificacoes_regras  RENAME COLUMN tenant_id TO cliente_id;
-ALTER TABLE IF EXISTS notificacoes         RENAME COLUMN tenant_id TO cliente_id;
+DO $$ BEGIN IF EXISTS (SELECT FROM information_schema.columns WHERE table_name='usuarios' AND column_name='tenant_id') THEN ALTER TABLE usuarios RENAME COLUMN tenant_id TO cliente_id; END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT FROM information_schema.columns WHERE table_name='edificacoes' AND column_name='tenant_id') THEN ALTER TABLE edificacoes RENAME COLUMN tenant_id TO cliente_id; END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT FROM information_schema.columns WHERE table_name='sensores' AND column_name='tenant_id') THEN ALTER TABLE sensores RENAME COLUMN tenant_id TO cliente_id; END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT FROM information_schema.columns WHERE table_name='leituras' AND column_name='tenant_id') THEN ALTER TABLE leituras RENAME COLUMN tenant_id TO cliente_id; END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT FROM information_schema.columns WHERE table_name='documentos' AND column_name='tenant_id') THEN ALTER TABLE documentos RENAME COLUMN tenant_id TO cliente_id; END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT FROM information_schema.columns WHERE table_name='notificacoes_config' AND column_name='tenant_id') THEN ALTER TABLE notificacoes_config RENAME COLUMN tenant_id TO cliente_id; END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT FROM information_schema.columns WHERE table_name='notificacoes_regras' AND column_name='tenant_id') THEN ALTER TABLE notificacoes_regras RENAME COLUMN tenant_id TO cliente_id; END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT FROM information_schema.columns WHERE table_name='notificacoes' AND column_name='tenant_id') THEN ALTER TABLE notificacoes RENAME COLUMN tenant_id TO cliente_id; END IF; END $$;
 
 -- Renomeia índices
 ALTER INDEX IF EXISTS idx_edificacoes_tenant        RENAME TO idx_edificacoes_cliente;

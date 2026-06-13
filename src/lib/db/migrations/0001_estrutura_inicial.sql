@@ -54,8 +54,8 @@ CREATE TABLE IF NOT EXISTS leituras (
   lida_em         TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_edificacoes_tenant     ON edificacoes(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_sensores_tenant        ON sensores(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_edificacoes_cliente    ON edificacoes(cliente_id);
+CREATE INDEX IF NOT EXISTS idx_sensores_cliente       ON sensores(cliente_id);
 CREATE INDEX IF NOT EXISTS idx_sensores_edificacao    ON sensores(edificacao_id);
 CREATE INDEX IF NOT EXISTS idx_sensores_tipo          ON sensores(tipo_sensor);
 CREATE INDEX IF NOT EXISTS idx_leituras_sensor        ON leituras(sensor_id);
