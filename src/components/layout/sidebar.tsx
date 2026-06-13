@@ -11,6 +11,7 @@ import {
   FileText,
   Bell,
   Settings,
+  Key,
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 
@@ -89,7 +90,17 @@ export function Sidebar() {
           </Link>
         ))}
       </nav>
-      <div className="border-t border-[var(--border)] p-4">
+      <div className="border-t border-[var(--border)] p-4 space-y-2">
+        <Link
+          href="/configuracoes"
+          className={cn(
+            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-[var(--bg-secondary)]",
+            pathname === "/configuracoes" ? "bg-[var(--bg-secondary)] text-[var(--brand)]" : "text-[var(--text-secondary)]",
+          )}
+        >
+          <Key className="h-4 w-4" />
+          Configurações
+        </Link>
         <div className="flex items-center gap-3 text-sm">
           <div className="h-8 w-8 rounded-full bg-[var(--brand)] flex items-center justify-center text-white font-medium text-xs">
             {session?.user?.name?.charAt(0)?.toUpperCase() ?? "U"}

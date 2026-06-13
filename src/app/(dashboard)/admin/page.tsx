@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2, Plus, Trash2, Shield, ShieldCheck, Building2, Pencil, Check, ArrowLeft, Users } from "lucide-react"
+import { Loader2, Plus, Trash2, Shield, ShieldCheck, Building2, Pencil, Check, ArrowLeft, Users, KeyRound } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { toast } from "sonner"
 
@@ -52,6 +52,9 @@ function UserList({ clienteId, back, clienteNome }: UserListProps) {
   const [saving, setSaving] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editForm, setEditForm] = useState<Partial<Usuario>>({})
+  const [resetPasswordId, setResetPasswordId] = useState<number | null>(null)
+  const [resetPasswordValue, setResetPasswordValue] = useState("")
+  const [resettingPassword, setResettingPassword] = useState(false)
 
   function load() {
     setLoading(true)
@@ -94,6 +97,26 @@ function UserList({ clienteId, back, clienteNome }: UserListProps) {
     if (!confirm(`Excluir "${nome}"?`)) return
     try { await fetch(`/api/usuarios/${id}`, { method: "DELETE" }); toast.success("Excluído"); load() }
     catch { toast.error("Erro ao excluir") }
+  }
+
+  async function handleResetPassword(id: number) {
+    if (!resetPasswordValue || resetPasswordValue.length < 6) {
+      toast.error("Senha deve ter no mínimo 6 caracteres")
+      return
+    }
+    setResettingPassword(true)
+    try {
+      const res = await fetch(`/api/usuarios/${id}/password`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newPassword: resetPasswordValue }),
+      })
+      if (!res.ok) { const err = await res.json(); toast.error(err.error || "Erro"); return }
+      toast.success("Senha redefinida")
+      setResetPasswordId(null)
+      setResetPasswordValue("")
+    } catch { toast.error("Erro ao redefinir senha") }
+    finally { setResettingPassword(false) }
   }
 
   return (
@@ -175,9 +198,33 @@ function UserList({ clienteId, back, clienteNome }: UserListProps) {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <Button variant="ghost" size="sm" onClick={() => { setEditingId(u.id); setEditForm({ nome: u.nome, email: u.email, role: u.role }) }}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                      {resetPasswordId === u.id ? (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="password"
+                            placeholder="Nova senha"
+                            value={resetPasswordValue}
+                            onChange={(e) => setResetPasswordValue(e.target.value)}
+                            className="w-32 rounded border border-[var(--border)] bg-[var(--bg-primary)] px-2 py-1 text-sm"
+                            autoFocus
+                          />
+                          <Button size="sm" onClick={() => handleResetPassword(u.id)} disabled={resettingPassword}>
+                            <Check className="h-3 w-3" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => { setResetPasswordId(null); setResetPasswordValue("") }}>
+                            Cancelar
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <Button variant="ghost" size="sm" onClick={() => { setResetPasswordId(u.id); setResetPasswordValue("") }} title="Redefinir senha">
+                            <KeyRound className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => { setEditingId(u.id); setEditForm({ nome: u.nome, email: u.email, role: u.role }) }}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
                       <span className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
                         u.role === "ADMIN" || u.role === "SUPER" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
                       }`}>
@@ -355,6 +402,9 @@ function UsuariosGlobalTab() {
   const router = useRouter()
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [loading, setLoading] = useState(true)
+  const [resetPasswordId, setResetPasswordId] = useState<number | null>(null)
+  const [resetPasswordValue, setResetPasswordValue] = useState("")
+  const [resettingPassword, setResettingPassword] = useState(false)
   const { data: session } = useSession()
   const isSuper = session?.user?.role === "SUPER"
 
@@ -368,6 +418,26 @@ function UsuariosGlobalTab() {
   }
 
   useEffect(() => { load() }, [])
+
+  async function handleResetPassword(id: number) {
+    if (!resetPasswordValue || resetPasswordValue.length < 6) {
+      toast.error("Senha deve ter no mínimo 6 caracteres")
+      return
+    }
+    setResettingPassword(true)
+    try {
+      const res = await fetch(`/api/usuarios/${id}/password`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newPassword: resetPasswordValue }),
+      })
+      if (!res.ok) { const err = await res.json(); toast.error(err.error || "Erro"); return }
+      toast.success("Senha redefinida")
+      setResetPasswordId(null)
+      setResetPasswordValue("")
+    } catch { toast.error("Erro ao redefinir senha") }
+    finally { setResettingPassword(false) }
+  }
 
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] shadow-sm">
@@ -389,12 +459,36 @@ function UsuariosGlobalTab() {
                   {isSuper && (u as any).clienteNome && <p className="text-xs text-[var(--brand)] truncate">{(u as any).clienteNome}</p>}
                 </div>
               </div>
-              <span className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
-                u.role === "ADMIN" || u.role === "SUPER" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
-              }`}>
-                {u.role === "ADMIN" || u.role === "SUPER" ? <ShieldCheck className="h-3 w-3" /> : <Shield className="h-3 w-3" />}
-                {u.role}
-              </span>
+              <div className="flex items-center gap-2 shrink-0">
+                {resetPasswordId === u.id ? (
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="password"
+                      placeholder="Nova senha"
+                      value={resetPasswordValue}
+                      onChange={(e) => setResetPasswordValue(e.target.value)}
+                      className="w-32 rounded border border-[var(--border)] bg-[var(--bg-primary)] px-2 py-1 text-sm"
+                      autoFocus
+                    />
+                    <Button size="sm" onClick={() => handleResetPassword(u.id)} disabled={resettingPassword}>
+                      <Check className="h-3 w-3" />
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => { setResetPasswordId(null); setResetPasswordValue("") }}>
+                      Cancelar
+                    </Button>
+                  </div>
+                ) : (
+                  <Button variant="ghost" size="sm" onClick={() => { setResetPasswordId(u.id); setResetPasswordValue("") }} title="Redefinir senha">
+                    <KeyRound className="h-4 w-4" />
+                  </Button>
+                )}
+                <span className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
+                  u.role === "ADMIN" || u.role === "SUPER" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
+                }`}>
+                  {u.role === "ADMIN" || u.role === "SUPER" ? <ShieldCheck className="h-3 w-3" /> : <Shield className="h-3 w-3" />}
+                  {u.role}
+                </span>
+              </div>
             </div>
           ))}
         </div>
