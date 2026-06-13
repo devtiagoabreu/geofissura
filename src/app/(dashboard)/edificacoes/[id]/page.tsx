@@ -1,7 +1,6 @@
 import { getSession } from "@/lib/cliente"
 import { db } from "@/lib/db"
 import { edificacoes } from "@/lib/db/schema/edificacoes"
-import { sensores } from "@/lib/db/schema/sensores"
 import { eq, and } from "drizzle-orm"
 import { notFound } from "next/navigation"
 import Link from "next/link"
@@ -11,6 +10,7 @@ import { DeleteButton } from "@/components/ui/delete-button"
 import { DocumentosSection } from "@/components/documentos-section"
 import { PlanosDadosSection } from "@/components/planos-dados-section"
 import { EquipamentosSection } from "@/components/equipamentos-section"
+import { SensoresSection } from "@/components/sensores-section"
 
 interface Props {
   params: { id: string }
@@ -29,12 +29,6 @@ export default async function EdificacaoDetalhePage({ params }: Props) {
   })
 
   if (!edificacao) notFound()
-
-  const conditions2 = [eq(sensores.edificacaoId, edificacao.id)]
-  if (!isSuper) conditions2.push(eq(sensores.clienteId, clienteId!))
-  const listaSensores = await db.select()
-    .from(sensores)
-    .where(and(...conditions2))
 
   return (
     <div className="space-y-6">
@@ -55,33 +49,7 @@ export default async function EdificacaoDetalhePage({ params }: Props) {
           <DeleteButton apiPath={`/api/edificacoes/${params.id}`} redirectTo="/edificacoes" />
         </div>
       </div>
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold">Sensores Instalados</h2>
-        {listaSensores.length === 0 ? (
-          <p className="text-sm text-[var(--text-secondary)]">
-            Nenhum sensor instalado nesta edificação
-          </p>
-        ) : (
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {listaSensores.map((sensor) => (
-              <div
-                key={sensor.id}
-                className="rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] p-4 shadow-sm"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="rounded bg-[var(--brand)]/10 px-2 py-0.5 text-xs font-medium text-[var(--brand)]">
-                    {sensor.tipoSensor}
-                  </span>
-                </div>
-                <p className="font-medium">{sensor.nome}</p>
-                {sensor.descricao && (
-                  <p className="text-sm text-[var(--text-secondary)]">{sensor.descricao}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <SensoresSection edificacaoId={edificacao.id} isSuper={isSuper} />
 
       <PlanosDadosSection edificacaoId={edificacao.id} isSuper={isSuper} />
 
