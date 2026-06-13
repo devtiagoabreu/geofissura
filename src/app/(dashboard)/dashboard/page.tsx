@@ -33,7 +33,7 @@ export default async function DashboardPage() {
   ])
 
   const [ultimasLeituras, listaEdificacoes, listaSensores] = await Promise.all([
-    db.select().from(leituras).where(and(...onlyCliente(leituras))).orderBy(sql`lida_em DESC`).limit(50),
+    db.select().from(leituras).where(and(...onlyCliente(leituras))).orderBy(sql`lida_em DESC`).limit(500),
     db.select({ id: edificacoes.id, nome: edificacoes.nome }).from(edificacoes).where(and(...clienteFilter(edificacoes))),
     db.select({ id: sensores.id, nome: sensores.nome, edificacaoId: sensores.edificacaoId }).from(sensores).where(and(...clienteFilter(sensores))),
   ])
