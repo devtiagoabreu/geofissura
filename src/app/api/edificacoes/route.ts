@@ -12,7 +12,7 @@ export async function GET() {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
     }
 
-    const conditions = []
+    const conditions = [eq(edificacoes.ativo, "S")]
     if (!isSuper) conditions.push(eq(edificacoes.clienteId, clienteId!))
     const dados = await db.select().from(edificacoes).where(and(...conditions))
 

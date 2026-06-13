@@ -58,7 +58,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
     const delConditions = [eq(edificacoes.id, Number(params.id))]
     if (!isSuper) delConditions.push(eq(edificacoes.clienteId, clienteId!))
-    await db.delete(edificacoes)
+    await db.update(edificacoes)
+      .set({ ativo: "N" })
       .where(and(...delConditions))
 
     return NextResponse.json({ ok: true })

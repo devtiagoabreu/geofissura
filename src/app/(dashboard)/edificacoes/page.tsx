@@ -13,7 +13,7 @@ export default async function EdificacoesPage() {
     return <p>Não autorizado</p>
   }
 
-  const conditions = []
+  const conditions = [eq(edificacoes.ativo, "S")]
   if (!isSuper) conditions.push(eq(edificacoes.clienteId, clienteId!))
   const lista = await db.select({
     id: edificacoes.id,

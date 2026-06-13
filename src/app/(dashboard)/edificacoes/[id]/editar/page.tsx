@@ -12,15 +12,15 @@ export default function EditarEdificacaoPage({ params }: { params: { id: string 
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(true)
+  const [nome, setNome] = useState("")
+  const [endereco, setEndereco] = useState("")
 
   useEffect(() => {
     fetch(`/api/edificacoes/${params.id}`)
       .then((r) => r.json())
       .then((data) => {
-        const form = document.getElementById("form") as HTMLFormElement
-        if (!form) return
-        ;(form.elements.namedItem("nome") as HTMLInputElement).value = data.nome
-        ;(form.elements.namedItem("endereco") as HTMLInputElement).value = data.endereco ?? ""
+        setNome(data.nome)
+        setEndereco(data.endereco ?? "")
         setLoadingData(false)
       })
       .catch(() => {
@@ -33,16 +33,11 @@ export default function EditarEdificacaoPage({ params }: { params: { id: string 
     e.preventDefault()
     setLoading(true)
 
-    const form = new FormData(e.currentTarget)
-
     try {
       const res = await fetch(`/api/edificacoes/${params.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nome: form.get("nome"),
-          endereco: form.get("endereco"),
-        }),
+        body: JSON.stringify({ nome, endereco }),
       })
 
       if (!res.ok) throw new Error(await res.text())
@@ -69,14 +64,14 @@ export default function EditarEdificacaoPage({ params }: { params: { id: string 
       <div>
         <h1 className="text-2xl font-bold">Editar Edificação</h1>
       </div>
-      <form id="form" onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="nome">Nome</Label>
-          <Input id="nome" name="nome" required />
+          <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
         </div>
         <div className="space-y-2">
           <Label htmlFor="endereco">Endereço</Label>
-          <Input id="endereco" name="endereco" />
+          <Input id="endereco" value={endereco} onChange={(e) => setEndereco(e.target.value)} />
         </div>
         <div className="flex gap-2">
           <Button type="submit" disabled={loading}>

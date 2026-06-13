@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2, Plus, Trash2, Pencil, X, Cpu, WifiOff } from "lucide-react"
+import { Loader2, Plus, Trash2, Pencil, X, Cpu, WifiOff, Save, DollarSign } from "lucide-react"
 import { toast } from "sonner"
 
 interface SensorItem {
@@ -17,6 +17,12 @@ interface SensorItem {
   dados: Record<string, unknown>
 }
 
+interface PrecoSensor {
+  id: number
+  sensorId: number
+  valorMensal: string
+}
+
 const tiposSensor = [
   "inclinometro",
   "fissurometro",
@@ -27,18 +33,31 @@ const tiposSensor = [
 
 export function SensoresSection({ edificacaoId, isSuper }: { edificacaoId: number; isSuper: boolean }) {
   const [sensores, setSensores] = useState<SensorItem[]>([])
+  const [precos, setPrecos] = useState<Record<number, string>>({})
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [savingPreco, setSavingPreco] = useState<number | null>(null)
   const [editingId, setEditingId] = useState<number | null>(null)
 
   function load() {
     setLoading(true)
-    fetch("/api/sensores?edificacaoId=" + edificacaoId)
+    fetch("/api/sensores")
       .then(r => r.json())
-      .then(list => {
-        const filtrados = Array.isArray(list) ? list.filter((s: SensorItem) => s.edificacaoId === edificacaoId) : []
+      .then((lista: SensorItem[]) => {
+        const filtrados = Array.isArray(lista) ? lista.filter(s => s.edificacaoId === edificacaoId) : []
         setSensores(filtrados)
+        if (filtrados.length > 0) {
+          return fetch(`/api/cobranca/precos?sensorIds=${filtrados.map(s => s.id).join(",")}`).then(r => r.json())
+        }
+        return []
+      })
+      .then((prices: PrecoSensor[]) => {
+        const map: Record<number, string> = {}
+        if (Array.isArray(prices)) {
+          for (const p of prices) map[p.sensorId] = p.valorMensal
+        }
+        setPrecos(map)
       })
       .catch(() => toast.error("Erro ao carregar sensores"))
       .finally(() => setLoading(false))
@@ -90,6 +109,20 @@ export function SensoresSection({ edificacaoId, isSuper }: { edificacaoId: numbe
       load()
     } catch { toast.error("Erro ao atualizar sensor") }
     finally { setSaving(false) }
+  }
+
+  async function handleSavePreco(sensorId: number) {
+    setSavingPreco(sensorId)
+    try {
+      const res = await fetch("/api/cobranca/precos", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sensorId, valorMensal: precos[sensorId] || "0" }),
+      })
+      if (!res.ok) { const err = await res.json(); toast.error(err.error || "Erro"); return }
+      toast.success("Valor salvo")
+    } catch { toast.error("Erro ao salvar valor") }
+    finally { setSavingPreco(null) }
   }
 
   async function handleDelete(id: number) {
@@ -192,16 +225,38 @@ export function SensoresSection({ edificacaoId, isSuper }: { edificacaoId: numbe
                       )}
                     </div>
                   </div>
-                  {isSuper && (
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Button variant="ghost" size="sm" onClick={() => { setEditingId(sensor.id); setShowForm(false) }}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(sensor.id)} className="text-red-500 hover:text-red-700">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 shrink-0">
+                    {isSuper && (
+                      <>
+                        <div className="relative">
+                          <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-[var(--text-secondary)]" />
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={precos[sensor.id] ?? ""}
+                            onChange={(e) => setPrecos((v) => ({ ...v, [sensor.id]: e.target.value }))}
+                            className="w-20 pl-6 text-xs"
+                            placeholder="0,00"
+                          />
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleSavePreco(sensor.id)}
+                          disabled={savingPreco === sensor.id}
+                        >
+                          {savingPreco === sensor.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => { setEditingId(sensor.id); setShowForm(false) }}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDelete(sensor.id)} className="text-red-500 hover:text-red-700">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
               )
             ))}
