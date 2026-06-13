@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS notificacoes_config (
   id              SERIAL PRIMARY KEY,
-  tenant_id       INTEGER NOT NULL UNIQUE REFERENCES tenants(id),
+  cliente_id       INTEGER NOT NULL UNIQUE REFERENCES clientes(id),
   smtp_host       VARCHAR(255) DEFAULT 'smtp.gmail.com',
   smtp_port       INTEGER DEFAULT 587,
   smtp_user       VARCHAR(255),
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS notificacoes_config (
 
 CREATE TABLE IF NOT EXISTS notificacoes_regras (
   id              SERIAL PRIMARY KEY,
-  tenant_id       INTEGER NOT NULL REFERENCES tenants(id),
+  cliente_id       INTEGER NOT NULL REFERENCES clientes(id),
   nome            VARCHAR(200) NOT NULL,
   descricao       TEXT,
   sensor_tipo     VARCHAR(50),
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS notificacoes_regra_destinatarios (
 
 CREATE TABLE IF NOT EXISTS notificacoes (
   id              SERIAL PRIMARY KEY,
-  tenant_id       INTEGER NOT NULL REFERENCES tenants(id),
+  cliente_id       INTEGER NOT NULL REFERENCES clientes(id),
   regra_id        INTEGER REFERENCES notificacoes_regras(id) ON DELETE SET NULL,
   usuario_id      INTEGER NOT NULL REFERENCES usuarios(id),
   titulo          VARCHAR(300) NOT NULL,

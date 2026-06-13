@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS documentos (
   id              SERIAL PRIMARY KEY,
-  tenant_id       INTEGER NOT NULL REFERENCES tenants(id),
+  cliente_id       INTEGER NOT NULL REFERENCES clientes(id),
   edificacao_id   INTEGER NOT NULL REFERENCES edificacoes(id) ON DELETE CASCADE,
   url             VARCHAR(1000) NOT NULL,
   descricao       TEXT NOT NULL,

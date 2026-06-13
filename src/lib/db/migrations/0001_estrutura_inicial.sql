@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS tenants (
+CREATE TABLE IF NOT EXISTS clientes (
   id         SERIAL PRIMARY KEY,
   nome       VARCHAR(200) NOT NULL,
   slug       VARCHAR(100) UNIQUE NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS tenants (
 
 CREATE TABLE IF NOT EXISTS usuarios (
   id         SERIAL PRIMARY KEY,
-  tenant_id  INTEGER NOT NULL REFERENCES tenants(id),
+  cliente_id  INTEGER NOT NULL REFERENCES clientes(id),
   nome       VARCHAR(200) NOT NULL,
   email      VARCHAR(255) UNIQUE NOT NULL,
   password   VARCHAR(255) NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
 
 CREATE TABLE IF NOT EXISTS edificacoes (
   id         SERIAL PRIMARY KEY,
-  tenant_id  INTEGER NOT NULL REFERENCES tenants(id),
+  cliente_id  INTEGER NOT NULL REFERENCES clientes(id),
   nome       VARCHAR(200) NOT NULL,
   endereco   TEXT,
   ativo      VARCHAR(1) DEFAULT 'S',
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS edificacoes (
 
 CREATE TABLE IF NOT EXISTS sensores (
   id              SERIAL PRIMARY KEY,
-  tenant_id       INTEGER NOT NULL REFERENCES tenants(id),
+  cliente_id       INTEGER NOT NULL REFERENCES clientes(id),
   edificacao_id   INTEGER NOT NULL REFERENCES edificacoes(id) ON DELETE CASCADE,
   tipo_sensor     VARCHAR(50) NOT NULL,
   nome            VARCHAR(200) NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS sensores (
 
 CREATE TABLE IF NOT EXISTS leituras (
   id              SERIAL PRIMARY KEY,
-  tenant_id       INTEGER NOT NULL REFERENCES tenants(id),
+  cliente_id       INTEGER NOT NULL REFERENCES clientes(id),
   sensor_id       INTEGER NOT NULL REFERENCES sensores(id) ON DELETE CASCADE,
   topico_mqtt     VARCHAR(500),
   valor           NUMERIC(12, 4),
