@@ -46,12 +46,17 @@ async function main() {
 
   let total = 0
 
+  await sql`DELETE FROM leituras`
+  console.log(" Leituras anteriores removidas\n")
+
   for (const sensor of sensores) {
-    // Gera 30 leituras por sensor com timestamps espaçados
     const leituras = []
     const now = Date.now()
-    for (let i = 29; i >= 0; i--) {
-      const ts = new Date(now - i * 60 * 60 * 1000) // 1 em 1 hora
+    // Cada sensor comeca em horario diferente (90 min * id)
+    // e gera 10 leituras a cada 4h → cobre ~36h por sensor
+    const baseOffset = (sensor.id - 1) * 90 * 60 * 1000
+    for (let i = 9; i >= 0; i--) {
+      const ts = new Date(now - baseOffset - i * 4 * 60 * 60 * 1000)
       const leitura = gerarLeitura(sensor.tipo_sensor)
       leituras.push({
         cliente_id: sensor.cliente_id,
