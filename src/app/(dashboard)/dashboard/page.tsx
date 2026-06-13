@@ -21,7 +21,11 @@ export default async function DashboardPage({
   let edificacaoId: number | null = null
   if (searchParams?.edificacao_id) {
     const parsed = Number(searchParams.edificacao_id)
-    if (!isNaN(parsed)) edificacaoId = parsed
+    if (!isNaN(parsed) && parsed > 0) edificacaoId = parsed
+  }
+  // SUPER padrao: iniciar no primeiro edificio de exemplo
+  if (!searchParams?.edificacao_id && isSuper && !edificacaoId) {
+    edificacaoId = 1
   }
 
   function clienteFilter(table: any) {

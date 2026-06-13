@@ -122,7 +122,11 @@ export function ReadingsChart({
             value={edificacaoId ?? ""}
             onChange={(e) => {
               const val = e.target.value
-              router.push(val ? `/dashboard?edificacao_id=${val}` : "/dashboard")
+              if (val) {
+                router.push(`/dashboard?edificacao_id=${val}`)
+              } else {
+                router.push("/dashboard?edificacao_id=0")
+              }
             }}
             className="h-8 rounded-md border border-gray-300 bg-white px-2 text-xs text-gray-900"
           >
