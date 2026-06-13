@@ -4,7 +4,7 @@ import { edificacoes } from "@/lib/db/schema/edificacoes"
 import { sensores } from "@/lib/db/schema/sensores"
 import { leituras } from "@/lib/db/schema/leituras"
 import { eq, and, inArray, sql } from "drizzle-orm"
-import { Building2, Users, Activity, AlertTriangle } from "lucide-react"
+import { Building2, Cpu, Activity, AlertTriangle } from "lucide-react"
 import { ReadingsChart } from "./chart"
 
 export default async function DashboardPage() {
@@ -58,7 +58,7 @@ export default async function DashboardPage() {
 
   const cards = [
     { label: "Edificações", value: Number(totalEdificacoes.count), icon: Building2, color: "text-emerald-500" },
-    { label: "Sensores", value: Number(totalSensores.count), icon: Users, color: "text-blue-500" },
+    { label: "Sensores", value: Number(totalSensores.count), icon: Cpu, color: "text-blue-500" },
     { label: "Leituras", value: Number(totalLeituras.count), icon: Activity, color: "text-violet-500" },
     { label: "Alertas", value: 0, icon: AlertTriangle, color: "text-amber-500" },
   ]

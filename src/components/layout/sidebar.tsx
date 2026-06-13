@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
   Building2,
-  Users,
+  Cpu,
   Activity,
   FileText,
   Bell,
@@ -32,7 +32,7 @@ const NAV_ITENS = [
   {
     titulo: "Sensores",
     href: "/sensores",
-    icon: Users,
+    icon: Cpu,
     roles: ["SUPER", "ADMIN", "USER", "VIEWER"],
   },
   {
