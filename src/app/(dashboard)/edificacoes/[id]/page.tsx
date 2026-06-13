@@ -5,8 +5,9 @@ import { eq, and } from "drizzle-orm"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Pencil, AlertTriangle } from "lucide-react"
+import { Pencil, AlertTriangle, RefreshCw } from "lucide-react"
 import { DeleteButton } from "@/components/ui/delete-button"
+import { ReativarButton } from "@/components/ui/reativar-button"
 import { DocumentosSection } from "@/components/documentos-section"
 import { PlanosDadosSection } from "@/components/planos-dados-section"
 import { EquipamentosSection } from "@/components/equipamentos-section"
@@ -33,9 +34,12 @@ export default async function EdificacaoDetalhePage({ params }: Props) {
   return (
     <div className="space-y-6">
       {edificacao.ativo === "N" && (
-        <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-          <AlertTriangle className="h-4 w-4 shrink-0" />
-          Esta edificação está <strong>desativada</strong>.
+        <div className="flex items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            Esta edificação está <strong>desativada</strong>. Todos os sensores, planos e equipamentos também foram desativados.
+          </div>
+          <ReativarButton apiPath={`/api/edificacoes/${params.id}/reativar`} redirectTo={`/edificacoes/${params.id}`} />
         </div>
       )}
       <div className="flex items-start justify-between">
