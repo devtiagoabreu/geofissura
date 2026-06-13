@@ -61,8 +61,12 @@ export default function CobrancaClientePage() {
   const [totalEquipamentos, setTotalEquipamentos] = useState("0")
   const [totalMensal, setTotalMensal] = useState("0")
   const [loading, setLoading] = useState(true)
-  const [savingId, setSavingId] = useState<number | null>(null)
-  const [editValues, setEditValues] = useState<Record<number, string>>({})
+  const [savingSensor, setSavingSensor] = useState<number | null>(null)
+  const [savingPlano, setSavingPlano] = useState<number | null>(null)
+  const [savingEquip, setSavingEquip] = useState<number | null>(null)
+  const [sensorValues, setSensorValues] = useState<Record<number, string>>({})
+  const [planoValues, setPlanoValues] = useState<Record<number, string>>({})
+  const [equipValues, setEquipValues] = useState<Record<number, string>>({})
 
   useEffect(() => {
     fetch(`/api/cobranca/${clienteId}`)
@@ -74,47 +78,77 @@ export default function CobrancaClientePage() {
         setTotalPlanos(data.totalPlanos)
         setTotalEquipamentos(data.totalEquipamentos)
         setTotalMensal(data.totalMensal)
-        const values: Record<number, string> = {}
+        const svals: Record<number, string> = {}
+        const pvals: Record<number, string> = {}
+        const evals: Record<number, string> = {}
         for (const ed of data.edificacoes) {
-          for (const s of ed.sensores) {
-            values[s.id] = s.valorMensal ?? ""
-          }
+          for (const s of ed.sensores) svals[s.id] = s.valorMensal ?? ""
+          for (const p of ed.planosDados) pvals[p.id] = p.valorMensal
+          for (const e of ed.equipamentos) evals[e.id] = e.valorUnitario
         }
-        setEditValues(values)
+        setSensorValues(svals)
+        setPlanoValues(pvals)
+        setEquipValues(evals)
       })
       .catch(() => router.push("/dashboard"))
       .finally(() => setLoading(false))
   }, [clienteId, router])
 
-  async function handleSave(sensorId: number) {
-    setSavingId(sensorId)
+  async function reloadTotals() {
+    const res = await fetch(`/api/cobranca/${clienteId}`).then(r => r.json())
+    setTotalSensores(res.totalSensores)
+    setTotalPlanos(res.totalPlanos)
+    setTotalEquipamentos(res.totalEquipamentos)
+    setTotalMensal(res.totalMensal)
+  }
+
+  async function handleSaveSensor(sensorId: number) {
+    setSavingSensor(sensorId)
     try {
       const res = await fetch("/api/cobranca/precos", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sensorId, valorMensal: editValues[sensorId] || "0" }),
+        body: JSON.stringify({ sensorId, valorMensal: sensorValues[sensorId] || "0" }),
       })
       if (!res.ok) { const err = await res.json(); toast.error(err.error || "Erro"); return }
-      toast.success("Valor salvo")
-      const totalRes = await fetch(`/api/cobranca/${clienteId}`).then(r => r.json())
-      setTotalSensores(totalRes.totalSensores)
-      setTotalPlanos(totalRes.totalPlanos)
-      setTotalEquipamentos(totalRes.totalEquipamentos)
-      setTotalMensal(totalRes.totalMensal)
+      toast.success("Valor do sensor salvo")
+      await reloadTotals()
     } catch { toast.error("Erro ao salvar") }
-    finally { setSavingId(null) }
+    finally { setSavingSensor(null) }
+  }
+
+  async function handleSavePlano(planoId: number) {
+    setSavingPlano(planoId)
+    try {
+      const res = await fetch("/api/cobranca/planos", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: planoId, valorMensal: planoValues[planoId] || "0" }),
+      })
+      if (!res.ok) { const err = await res.json(); toast.error(err.error || "Erro"); return }
+      toast.success("Valor do plano salvo")
+      await reloadTotals()
+    } catch { toast.error("Erro ao salvar") }
+    finally { setSavingPlano(null) }
+  }
+
+  async function handleSaveEquip(equipId: number) {
+    setSavingEquip(equipId)
+    try {
+      const res = await fetch("/api/cobranca/equipamentos", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: equipId, valorUnitario: equipValues[equipId] || "0" }),
+      })
+      if (!res.ok) { const err = await res.json(); toast.error(err.error || "Erro"); return }
+      toast.success("Valor do equipamento salvo")
+      await reloadTotals()
+    } catch { toast.error("Erro ao salvar") }
+    finally { setSavingEquip(null) }
   }
 
   function fmt(v: string | number) {
     return (typeof v === "string" ? parseFloat(v) : v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
-  }
-
-  function sumPlanos(planos: PlanoDadosItem[]) {
-    return planos.filter(p => p.ativo === "S").reduce((a, p) => a + (parseFloat(p.valorMensal) || 0), 0)
-  }
-
-  function sumEquipamentos(equips: EquipamentoItem[]) {
-    return equips.filter(e => e.ativo === "S").reduce((a, e) => a + e.quantidade * (parseFloat(e.valorUnitario) || 0), 0)
   }
 
   if (loading) {
@@ -162,9 +196,6 @@ export default function CobrancaClientePage() {
         </div>
       ) : (
         edificacoes.map((ed) => {
-          const totalEd = Object.values(editValues).reduce((a, v) => a + (parseFloat(v) || 0), 0)
-          const pTotal = sumPlanos(ed.planosDados)
-          const eTotal = sumEquipamentos(ed.equipamentos)
           return (
             <div key={ed.id} className="rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] shadow-sm overflow-hidden">
               <div className="flex items-center gap-3 px-5 py-4 border-b border-[var(--border)] bg-[var(--bg-secondary)]/50">
@@ -173,11 +204,13 @@ export default function CobrancaClientePage() {
                   <p className="font-semibold">{ed.nome}</p>
                   {ed.endereco && <p className="text-xs text-[var(--text-secondary)]">{ed.endereco}</p>}
                 </div>
-                <span className="text-sm font-semibold text-[var(--brand)]">{fmt(pTotal + eTotal + totalEd)}</span>
               </div>
 
               {/* Sensores */}
               <div className="divide-y divide-[var(--border)]">
+                <div className="px-5 py-2 bg-[var(--bg-secondary)]/10">
+                  <p className="text-xs font-semibold text-[var(--text-secondary)]">Sensores</p>
+                </div>
                 {ed.sensores.length === 0 ? (
                   <div className="p-4 text-sm text-[var(--text-secondary)] text-center">Nenhum sensor</div>
                 ) : (
@@ -199,17 +232,17 @@ export default function CobrancaClientePage() {
                           type="number"
                           step="0.01"
                           min="0"
-                          value={editValues[s.id] ?? ""}
-                          onChange={(e) => setEditValues((v) => ({ ...v, [s.id]: e.target.value }))}
+                          value={sensorValues[s.id] ?? ""}
+                          onChange={(e) => setSensorValues((v) => ({ ...v, [s.id]: e.target.value }))}
                           className="w-24 pl-2 text-sm"
                           placeholder="0,00"
                         />
                         <Button
                           size="sm"
-                          onClick={() => handleSave(s.id)}
-                          disabled={savingId === s.id}
+                          onClick={() => handleSaveSensor(s.id)}
+                          disabled={savingSensor === s.id}
                         >
-                          {savingId === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                          {savingSensor === s.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
                         </Button>
                       </div>
                     </div>
@@ -219,15 +252,39 @@ export default function CobrancaClientePage() {
 
               {/* Planos de Dados */}
               {ed.planosDados.length > 0 && (
-                <div className="border-t border-[var(--border)] bg-[var(--bg-secondary)]/20 px-5 py-2">
-                  <p className="text-xs font-semibold text-[var(--text-secondary)] mb-1">Planos de Dados</p>
+                <div className="border-t border-[var(--border)] divide-y divide-[var(--border)]">
+                  <div className="px-5 py-2 bg-[var(--bg-secondary)]/10">
+                    <p className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-1">
+                      <Signal className="h-3 w-3" /> Planos de Dados
+                    </p>
+                  </div>
                   {ed.planosDados.map((p) => (
-                    <div key={p.id} className="flex items-center justify-between py-1">
-                      <div className="flex items-center gap-2">
-                        <Signal className={`h-3 w-3 ${p.ativo === "S" ? "text-green-500" : "text-red-400"}`} />
-                        <span className="text-xs">{p.operadora}{p.descricao ? ` — ${p.descricao}` : ""}</span>
+                    <div key={p.id} className="flex items-center justify-between px-5 py-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Signal className={`h-4 w-4 shrink-0 ${p.ativo === "S" ? "text-green-500" : "text-red-400"}`} />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{p.operadora}</p>
+                          {p.descricao && <p className="text-xs text-[var(--text-secondary)]">{p.descricao}</p>}
+                        </div>
                       </div>
-                      <span className="text-xs font-medium">{fmt(p.valorMensal)}</span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={planoValues[p.id] ?? ""}
+                          onChange={(e) => setPlanoValues((v) => ({ ...v, [p.id]: e.target.value }))}
+                          className="w-24 pl-2 text-sm"
+                          placeholder="0,00"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={() => handleSavePlano(p.id)}
+                          disabled={savingPlano === p.id}
+                        >
+                          {savingPlano === p.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -235,20 +292,47 @@ export default function CobrancaClientePage() {
 
               {/* Equipamentos */}
               {ed.equipamentos.length > 0 && (
-                <div className="border-t border-[var(--border)] bg-[var(--bg-secondary)]/20 px-5 py-2">
-                  <p className="text-xs font-semibold text-[var(--text-secondary)] mb-1">Equipamentos</p>
-                  {ed.equipamentos.map((e) => {
-                    const total = e.quantidade * (parseFloat(e.valorUnitario) || 0)
-                    return (
-                      <div key={e.id} className="flex items-center justify-between py-1">
-                        <div className="flex items-center gap-2">
-                          <HardDrive className={`h-3 w-3 ${e.ativo === "S" ? "text-green-500" : "text-red-400"}`} />
-                          <span className="text-xs">{e.tipo} {e.descricao ? `— ${e.descricao}` : ""} ({e.quantidade}x)</span>
+                <div className="border-t border-[var(--border)] divide-y divide-[var(--border)]">
+                  <div className="px-5 py-2 bg-[var(--bg-secondary)]/10">
+                    <p className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-1">
+                      <HardDrive className="h-3 w-3" /> Equipamentos
+                    </p>
+                  </div>
+                  {ed.equipamentos.map((eq) => (
+                    <div key={eq.id} className="flex items-center justify-between px-5 py-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <HardDrive className={`h-4 w-4 shrink-0 ${eq.ativo === "S" ? "text-green-500" : "text-red-400"}`} />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{eq.tipo}</p>
+                          <p className="text-xs text-[var(--text-secondary)]">
+                            {eq.descricao ? `${eq.descricao} — ` : ""}{eq.quantidade}x
+                          </p>
                         </div>
-                        <span className="text-xs font-medium">{fmt(total)}</span>
                       </div>
-                    )
-                  })}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="text-right">
+                          <p className="text-xs text-[var(--text-secondary)]">Valor unit.</p>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={equipValues[eq.id] ?? ""}
+                            onChange={(ev) => setEquipValues((v) => ({ ...v, [eq.id]: ev.target.value }))}
+                            className="w-24 pl-2 text-sm"
+                            placeholder="0,00"
+                          />
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => handleSaveEquip(eq.id)}
+                          disabled={savingEquip === eq.id}
+                          className="mt-4"
+                        >
+                          {savingEquip === eq.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
