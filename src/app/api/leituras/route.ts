@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { leituras } from "@/lib/db/schema/leituras"
+import { sensores } from "@/lib/db/schema/sensores"
+import { edificacoes } from "@/lib/db/schema/edificacoes"
+import { clientes } from "@/lib/db/schema/clientes"
 import { getSession } from "@/lib/cliente"
 import { eq, and } from "drizzle-orm"
 import { apiError } from "@/lib/api-error"
@@ -14,8 +17,23 @@ export async function GET() {
 
     const conditions = []
     if (!isSuper) conditions.push(eq(leituras.clienteId, clienteId!))
-    const dados = await db.select()
+    const dados = await db.select({
+      id: leituras.id,
+      sensorId: leituras.sensorId,
+      clienteId: leituras.clienteId,
+      topicoMqtt: leituras.topicoMqtt,
+      valor: leituras.valor,
+      unidade: leituras.unidade,
+      metadata: leituras.metadata,
+      lidaEm: leituras.lidaEm,
+      sensorNome: sensores.nome,
+      edificacaoNome: edificacoes.nome,
+      clienteNome: clientes.nome,
+    })
       .from(leituras)
+      .leftJoin(sensores, eq(leituras.sensorId, sensores.id))
+      .leftJoin(edificacoes, eq(sensores.edificacaoId, edificacoes.id))
+      .leftJoin(clientes, eq(leituras.clienteId, clientes.id))
       .where(and(...conditions))
       .limit(50)
 

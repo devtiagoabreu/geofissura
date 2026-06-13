@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { sensores } from "@/lib/db/schema/sensores"
+import { edificacoes } from "@/lib/db/schema/edificacoes"
+import { clientes } from "@/lib/db/schema/clientes"
 import { getSession } from "@/lib/cliente"
 import { eq, and } from "drizzle-orm"
 import { apiError } from "@/lib/api-error"
@@ -14,7 +16,24 @@ export async function GET() {
 
     const conditions = []
     if (!isSuper) conditions.push(eq(sensores.clienteId, clienteId!))
-    const dados = await db.select().from(sensores).where(and(...conditions))
+    const dados = await db.select({
+      id: sensores.id,
+      clienteId: sensores.clienteId,
+      edificacaoId: sensores.edificacaoId,
+      tipoSensor: sensores.tipoSensor,
+      nome: sensores.nome,
+      descricao: sensores.descricao,
+      dados: sensores.dados,
+      ativo: sensores.ativo,
+      createdAt: sensores.createdAt,
+      updatedAt: sensores.updatedAt,
+      edificacaoNome: edificacoes.nome,
+      clienteNome: clientes.nome,
+    })
+      .from(sensores)
+      .leftJoin(edificacoes, eq(sensores.edificacaoId, edificacoes.id))
+      .leftJoin(clientes, eq(sensores.clienteId, clientes.id))
+      .where(and(...conditions))
 
     return NextResponse.json(dados)
   } catch (err) {
