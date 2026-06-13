@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/tenant"
+import { getSession } from "@/lib/cliente"
 import { db } from "@/lib/db"
 import { sensores } from "@/lib/db/schema/sensores"
 import { leituras } from "@/lib/db/schema/leituras"
@@ -14,13 +14,13 @@ interface Props {
 }
 
 export default async function SensorDetalhePage({ params }: Props) {
-  const { session, tenantId, isSuper } = await getSession()
+  const { session, clienteId, isSuper } = await getSession()
   if (!session) {
     return <p>Não autorizado</p>
   }
 
   const conditions1 = [eq(sensores.id, Number(params.id))]
-  if (!isSuper) conditions1.push(eq(sensores.tenantId, tenantId!))
+  if (!isSuper) conditions1.push(eq(sensores.clienteId, clienteId!))
   const sensor = await db.query.sensores.findFirst({
     where: and(...conditions1),
   })
@@ -28,7 +28,7 @@ export default async function SensorDetalhePage({ params }: Props) {
   if (!sensor) notFound()
 
   const conditions2 = [eq(leituras.sensorId, sensor.id)]
-  if (!isSuper) conditions2.push(eq(leituras.tenantId, tenantId!))
+  if (!isSuper) conditions2.push(eq(leituras.clienteId, clienteId!))
   const ultimasLeituras = await db.select()
     .from(leituras)
     .where(and(...conditions2))

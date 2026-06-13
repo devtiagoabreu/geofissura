@@ -29,7 +29,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.nome,
           role: user.role ?? "USER",
-          tenantId: user.tenantId,
+          clienteId: user.clienteId,
         }
       },
     }),
@@ -37,13 +37,13 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     jwt({ token, user }) {
       if (user) {
-        token.tenantId = user.tenantId
+        token.clienteId = user.clienteId
         token.role = user.role
       }
       return token
     },
     session({ session, token }) {
-      session.user.tenantId = token.tenantId as number
+      session.user.clienteId = token.clienteId as number
       session.user.role = token.role as string
       return session
     },

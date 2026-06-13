@@ -6,19 +6,19 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
 
   const topicParts = body.topic.split("/")
-  const [, tenantSlug, edificacaoId, sensorId] = topicParts
+  const [, clienteSlug, edificacaoId, sensorId] = topicParts
 
-  const tenant = await db.query.tenants.findFirst({
-    where: (t, { eq }) => eq(t.slug, tenantSlug),
+  const cliente = await db.query.clientes.findFirst({
+    where: (t, { eq }) => eq(t.slug, clienteSlug),
   })
 
-  if (!tenant) {
-    return NextResponse.json({ error: "tenant not found" }, { status: 404 })
+  if (!cliente) {
+    return NextResponse.json({ error: "cliente not found" }, { status: 404 })
   }
 
   const dados = JSON.parse(body.payload)
   await db.insert(leituras).values({
-    tenantId: tenant.id,
+    clienteId: cliente.id,
     sensorId: Number(sensorId),
     topicoMqtt: body.topic,
     valor: dados.valor,

@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/tenant"
+import { getSession } from "@/lib/cliente"
 import { db } from "@/lib/db"
 import { edificacoes } from "@/lib/db/schema/edificacoes"
 import { sensores } from "@/lib/db/schema/sensores"
@@ -15,13 +15,13 @@ interface Props {
 }
 
 export default async function EdificacaoDetalhePage({ params }: Props) {
-  const { session, tenantId, isSuper } = await getSession()
+  const { session, clienteId, isSuper } = await getSession()
   if (!session) {
     return <p>Não autorizado</p>
   }
 
   const conditions1 = [eq(edificacoes.id, Number(params.id))]
-  if (!isSuper) conditions1.push(eq(edificacoes.tenantId, tenantId!))
+  if (!isSuper) conditions1.push(eq(edificacoes.clienteId, clienteId!))
   const edificacao = await db.query.edificacoes.findFirst({
     where: and(...conditions1),
   })
@@ -29,7 +29,7 @@ export default async function EdificacaoDetalhePage({ params }: Props) {
   if (!edificacao) notFound()
 
   const conditions2 = [eq(sensores.edificacaoId, edificacao.id)]
-  if (!isSuper) conditions2.push(eq(sensores.tenantId, tenantId!))
+  if (!isSuper) conditions2.push(eq(sensores.clienteId, clienteId!))
   const listaSensores = await db.select()
     .from(sensores)
     .where(and(...conditions2))

@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { notificacoesConfig } from "@/lib/db/schema/notificacoes-config"
-import { getSession } from "@/lib/tenant"
+import { getSession } from "@/lib/cliente"
 import { eq } from "drizzle-orm"
 import { apiError } from "@/lib/api-error"
 
 export async function GET() {
   try {
-    const { session, tenantId } = await getSession()
+    const { session, clienteId } = await getSession()
     if (!session) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
     }
@@ -15,13 +15,13 @@ export async function GET() {
     let config = await db
       .select()
       .from(notificacoesConfig)
-      .where(eq(notificacoesConfig.tenantId, tenantId!))
+      .where(eq(notificacoesConfig.clienteId, clienteId!))
       .then((r) => r[0] ?? null)
 
     if (!config) {
       const [nova] = await db
         .insert(notificacoesConfig)
-        .values({ tenantId: tenantId! })
+        .values({ clienteId: clienteId! })
         .returning()
       config = nova
     }
@@ -34,7 +34,7 @@ export async function GET() {
 
 export async function PUT(req: NextRequest) {
   try {
-    const { session, tenantId } = await getSession()
+    const { session, clienteId } = await getSession()
     if (!session) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
     }
@@ -45,7 +45,7 @@ export async function PUT(req: NextRequest) {
     const existente = await db
       .select()
       .from(notificacoesConfig)
-      .where(eq(notificacoesConfig.tenantId, tenantId!))
+      .where(eq(notificacoesConfig.clienteId, clienteId!))
       .then((r) => r[0] ?? null)
 
     let config
@@ -53,12 +53,12 @@ export async function PUT(req: NextRequest) {
       [config] = await db
         .update(notificacoesConfig)
         .set({ smtpHost, smtpPort, smtpUser, smtpPass, smtpFrom, pushAtivo, emailAtivo, updatedAt: new Date() })
-        .where(eq(notificacoesConfig.tenantId, tenantId!))
+        .where(eq(notificacoesConfig.clienteId, clienteId!))
         .returning()
     } else {
       [config] = await db
         .insert(notificacoesConfig)
-        .values({ tenantId: tenantId!, smtpHost, smtpPort, smtpUser, smtpPass, smtpFrom, pushAtivo, emailAtivo })
+        .values({ clienteId: clienteId!, smtpHost, smtpPort, smtpUser, smtpPass, smtpFrom, pushAtivo, emailAtivo })
         .returning()
     }
 

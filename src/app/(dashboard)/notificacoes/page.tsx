@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/tenant"
+import { getSession } from "@/lib/cliente"
 import { db } from "@/lib/db"
 import { notificacoes } from "@/lib/db/schema/notificacoes"
 import { notificacoesRegras } from "@/lib/db/schema/notificacoes-regras"
@@ -9,7 +9,7 @@ import { Bell, Settings, Plus, RefreshCw, Mail } from "lucide-react"
 import { NotificacaoList } from "./_components/list"
 
 export default async function NotificacoesPage() {
-  const { session, tenantId } = await getSession()
+  const { session, clienteId } = await getSession()
   if (!session) {
     return <p>Não autorizado</p>
   }
@@ -17,7 +17,7 @@ export default async function NotificacoesPage() {
   const lista = await db
     .select()
     .from(notificacoes)
-    .where(and(eq(notificacoes.tenantId, tenantId!)))
+    .where(and(eq(notificacoes.clienteId, clienteId!)))
     .orderBy(desc(notificacoes.createdAt))
     .limit(100)
 

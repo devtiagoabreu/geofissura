@@ -1,4 +1,4 @@
-# Arquitetura Base — Template SaaS Multi-Tenant
+# Arquitetura Base — Template SaaS Multi-Cliente
 
 Este documento descreve a engenharia, arquitetura e padrões de desenvolvimento
 usados como base para qualquer projeto SaaS. Sirva-se dele como template mental
@@ -12,7 +12,7 @@ O "cerne" está nos padrões, não no domínio.
 > Laudos técnicos, etc. — e o sistema deve estar aberto para novos tipos
 > sem precisar reestruturar o banco. Os monitores (ex: ESP32) enviam dados
 > de sensores em tempo real via MQTT. Cada construtora vê apenas seus
-> próprios dados (multi-tenancy).
+> próprios dados (multi-cliente).
 
 ---
 
@@ -44,16 +44,16 @@ O "cerne" está nos padrões, não no domínio.
 
 ---
 
-## 2. Multi-Tenancy (Arquitetura de Dados)
+## 2. Multi-Cliente (Arquitetura de Dados)
 
-Cada cliente da plataforma SaaS é um **tenant**. Todos os dados pertencem a um
-tenant e são isolados por `tenant_id` em todas as tabelas.
+Cada cliente da plataforma SaaS é um **cliente**. Todos os dados pertencem a um
+cliente e são isolados por `cliente_id` em todas as tabelas.
 
 ```sql
 -- Tabela base: edificações
 CREATE TABLE edificacoes (
   id         SERIAL PRIMARY KEY,
-  tenant_id  INTEGER NOT NULL REFERENCES tenants(id),
+  cliente_id  INTEGER NOT NULL REFERENCES clientes(id),
   nome       VARCHAR(200) NOT NULL,
   endereco   TEXT,
   ativo      VARCHAR(1) DEFAULT 'S',
@@ -61,7 +61,7 @@ CREATE TABLE edificacoes (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX idx_edificacoes_tenant ON edificacoes(tenant_id);
+CREATE INDEX idx_edificacoes_cliente ON edificacoes(cliente_id);
 
 --------------------------------------------------------------
 -- ENTIDADES DA EDIFICAÇÃO (modelo extensível)
@@ -74,7 +74,7 @@ CREATE INDEX idx_edificacoes_tenant ON edificacoes(tenant_id);
 --------------------------------------------------------------
 CREATE TABLE sensores (
   id              SERIAL PRIMARY KEY,
-  tenant_id       INTEGER NOT NULL REFERENCES tenants(id),
+  cliente_id       INTEGER NOT NULL REFERENCES clientes(id),
   edificacao_id   INTEGER NOT NULL REFERENCES edificacoes(id) ON DELETE CASCADE,
   tipo_sensor   VARCHAR(50) NOT NULL,  -- 'fissura', 'inclinacao', 'temperatura', 'umidade', 'sismo', ...
   nome            VARCHAR(200) NOT NULL,
@@ -90,7 +90,7 @@ CREATE TABLE sensores (
   updated_at      TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX idx_sensores_tenant    ON sensores(tenant_id);
+CREATE INDEX idx_sensores_cliente    ON sensores(cliente_id);
 CREATE INDEX idx_sensores_edificacao ON sensores(edificacao_id);
 CREATE INDEX idx_sensores_tipo      ON sensores(tipo_sensor);
 
@@ -99,7 +99,7 @@ CREATE INDEX idx_sensores_tipo      ON sensores(tipo_sensor);
 --------------------------------------------------------------
 CREATE TABLE leituras (
   id              SERIAL PRIMARY KEY,
-  tenant_id       INTEGER NOT NULL REFERENCES tenants(id),
+  cliente_id       INTEGER NOT NULL REFERENCES clientes(id),
   entidade_id     INTEGER NOT NULL REFERENCES entidades_da_edificacao(id) ON DELETE CASCADE,
   topico_mqtt     VARCHAR(500),
   valor           NUMERIC(12, 4),
@@ -118,14 +118,14 @@ CREATE INDEX idx_leituras_tempo    ON leituras(lida_em DESC);
 Usuário faz login
        │
        ▼
-Sessão contém tenant_id
+Sessão contém cliente_id
        │
        ▼
-Toda query no backend filtra por tenant_id
-  → WHERE tenant_id = sessao.tenant_id
+Toda query no backend filtra por cliente_id
+  → WHERE cliente_id = sessao.cliente_id
        │
        ▼
-Usuário vê APENAS dados do seu tenant
+Usuário vê APENAS dados do seu cliente
 ```
 
 ### Como implementar no código
@@ -137,21 +137,21 @@ import { eq, and } from "drizzle-orm"
 
 export async function getEdificacoes() {
   const session = await auth()
-  if (!session?.user?.tenantId) throw new Error("Unauthorized")
+  if (!session?.user?.clienteId) throw new Error("Unauthorized")
 
   return db.select().from(edificacoes)
-    .where(eq(edificacoes.tenantId, session.user.tenantId))
+    .where(eq(edificacoes.clienteId, session.user.clienteId))
 }
 ```
 
 ```ts
 // lib/db/schema/edificacoes.ts
 import { pgTable, serial, varchar, integer, timestamp, text } from "drizzle-orm/pg-core"
-import { tenants } from "./tenants"
+import { clientes } from "./clientes"
 
 export const edificacoes = pgTable("edificacoes", {
   id: serial("id").primaryKey(),
-  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  clienteId: integer("cliente_id").notNull().references(() => clientes.id),
   nome: varchar("nome", { length: 200 }).notNull(),
   endereco: text("endereco"),
   ativo: varchar("ativo", { length: 1 }).default("S"),
@@ -163,12 +163,12 @@ export const edificacoes = pgTable("edificacoes", {
 ```ts
 // lib/db/schema/sensores.ts
 import { pgTable, serial, varchar, integer, timestamp, text, jsonb } from "drizzle-orm/pg-core"
-import { tenants } from "./tenants"
+import { clientes } from "./clientes"
 import { edificacoes } from "./edificacoes"
 
 export const sensores = pgTable("sensores", {
   id: serial("id").primaryKey(),
-  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  clienteId: integer("cliente_id").notNull().references(() => clientes.id),
   edificacaoId: integer("edificacao_id").notNull().references(() => edificacoes.id, { onDelete: "cascade" }),
   tipoSensor: varchar("tipo_sensor", { length: 50 }).notNull(),
   nome: varchar("nome", { length: 200 }).notNull(),
@@ -186,12 +186,12 @@ export type NewSensor = typeof sensores.$inferInsert
 ```ts
 // lib/db/schema/leituras.ts
 import { pgTable, serial, varchar, integer, timestamp, numeric, jsonb } from "drizzle-orm/pg-core"
-import { tenants } from "./tenants"
+import { clientes } from "./clientes"
 import { sensores } from "./sensores"
 
 export const leituras = pgTable("leituras", {
   id: serial("id").primaryKey(),
-  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  clienteId: integer("cliente_id").notNull().references(() => clientes.id),
   sensorId: integer("sensor_id").notNull().references(() => sensores.id, { onDelete: "cascade" }),
   topicoMqtt: varchar("topico_mqtt", { length: 500 }),
   valor: numeric("valor", { precision: 12, scale: 4 }),
@@ -209,16 +209,16 @@ export const leituras = pgTable("leituras", {
 src/
 ├── app/
 │   ├── (auth)/                  # Login, registro, recover
-│   ├── (dashboard)/             # Grupo protegido (requer sessão + tenant)
+│   ├── (dashboard)/             # Grupo protegido (requer sessão + cliente)
 │   │   ├── modulo-x/
-│   │   │   ├── page.tsx         # Listagem (filtrada por tenant)
+│   │   │   ├── page.tsx         # Listagem (filtrada por cliente)
 │   │   │   ├── [id]/page.tsx    # Detalhe
 │   │   │   └── novo/page.tsx    # Criação
 │   │   ├── layout.tsx           # Dashboard shell (sidebar + header)
 │   │   └── page.tsx             # Dashboard principal
 │   └── api/
 │       ├── modulo-x/
-│       │   ├── route.ts         # CRUD (sempre filtra por tenant)
+│       │   ├── route.ts         # CRUD (sempre filtra por cliente)
 │       │   └── [id]/route.ts
 │       └── auth/                # NextAuth
 ├── components/
@@ -290,12 +290,12 @@ import { apiError } from "@/lib/api-error"
 export async function GET(req: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user?.tenantId) {
+    if (!session?.user?.clienteId) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
     }
 
     const dados = await db.select().from(edificacoes)
-      .where(eq(edificacoes.tenantId, session.user.tenantId))
+      .where(eq(edificacoes.clienteId, session.user.clienteId))
 
     return NextResponse.json(dados)
   } catch (err) {
@@ -306,13 +306,13 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user?.tenantId) {
+    if (!session?.user?.clienteId) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
     }
 
     const body = await req.json()
     const [novo] = await db.insert(edificacoes)
-      .values({ ...body, tenantId: session.user.tenantId })
+      .values({ ...body, clienteId: session.user.clienteId })
       .returning()
 
     return NextResponse.json(novo, { status: 201 })
@@ -327,11 +327,11 @@ export async function POST(req: NextRequest) {
 ```ts
 // src/lib/db/schema/edificacoes.ts
 import { pgTable, serial, varchar, timestamp, integer, text } from "drizzle-orm/pg-core"
-import { tenants } from "./tenants"
+import { clientes } from "./clientes"
 
 export const edificacoes = pgTable("edificacoes", {
   id: serial("id").primaryKey(),
-  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  clienteId: integer("cliente_id").notNull().references(() => clientes.id),
   nome: varchar("nome", { length: 200 }).notNull(),
   endereco: text("endereco"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -345,14 +345,14 @@ export type NewEdificacao = typeof edificacoes.$inferInsert
 **Regras:**
 - Nomes SQL em snake_case
 - Propriedades TypeScript em camelCase (Drizzle mapeia)
-- Toda tabela de domínio tem `tenant_id`, `id`, `created_at`, `updated_at`
+- Toda tabela de domínio tem `cliente_id`, `id`, `created_at`, `updated_at`
 - Chaves estrangeiras explícitas com `references()`
 
 ### 4.4. Migrations
 
 ```sql
 -- src/lib/db/migrations/0001_estrutura_inicial.sql
-CREATE TABLE IF NOT EXISTS tenants (
+CREATE TABLE IF NOT EXISTS clientes (
   id         SERIAL PRIMARY KEY,
   nome       VARCHAR(200) NOT NULL,
   slug       VARCHAR(100) UNIQUE NOT NULL,
@@ -362,7 +362,7 @@ CREATE TABLE IF NOT EXISTS tenants (
 
 CREATE TABLE IF NOT EXISTS usuarios (
   id         SERIAL PRIMARY KEY,
-  tenant_id  INTEGER NOT NULL REFERENCES tenants(id),
+  cliente_id  INTEGER NOT NULL REFERENCES clientes(id),
   nome       VARCHAR(200) NOT NULL,
   email      VARCHAR(255) UNIQUE NOT NULL,
   password   VARCHAR(255) NOT NULL,
@@ -373,7 +373,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
 
 CREATE TABLE IF NOT EXISTS edificacoes (
   id         SERIAL PRIMARY KEY,
-  tenant_id  INTEGER NOT NULL REFERENCES tenants(id),
+  cliente_id  INTEGER NOT NULL REFERENCES clientes(id),
   nome       VARCHAR(200) NOT NULL,
   endereco   TEXT,
   ativo      VARCHAR(1) DEFAULT 'S',
@@ -383,7 +383,7 @@ CREATE TABLE IF NOT EXISTS edificacoes (
 
 CREATE TABLE IF NOT EXISTS entidades_da_edificacao (
   id              SERIAL PRIMARY KEY,
-  tenant_id       INTEGER NOT NULL REFERENCES tenants(id),
+  cliente_id       INTEGER NOT NULL REFERENCES clientes(id),
   edificacao_id   INTEGER NOT NULL REFERENCES edificacoes(id) ON DELETE CASCADE,
   tipo_entidade   VARCHAR(50) NOT NULL,
   nome            VARCHAR(200) NOT NULL,
@@ -396,7 +396,7 @@ CREATE TABLE IF NOT EXISTS entidades_da_edificacao (
 
 CREATE TABLE IF NOT EXISTS leituras (
   id              SERIAL PRIMARY KEY,
-  tenant_id       INTEGER NOT NULL REFERENCES tenants(id),
+  cliente_id       INTEGER NOT NULL REFERENCES clientes(id),
   sensor_id       INTEGER NOT NULL REFERENCES sensores(id) ON DELETE CASCADE,
   topico_mqtt     VARCHAR(500),
   valor           NUMERIC(12, 4),
@@ -405,8 +405,8 @@ CREATE TABLE IF NOT EXISTS leituras (
   lida_em         TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_edificacoes_tenant     ON edificacoes(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_sensores_tenant        ON sensores(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_edificacoes_cliente     ON edificacoes(cliente_id);
+CREATE INDEX IF NOT EXISTS idx_sensores_cliente        ON sensores(cliente_id);
 CREATE INDEX IF NOT EXISTS idx_sensores_edificacao    ON sensores(edificacao_id);
 CREATE INDEX IF NOT EXISTS idx_sensores_tipo          ON sensores(tipo_sensor);
 CREATE INDEX IF NOT EXISTS idx_leituras_sensor        ON leituras(sensor_id);
@@ -523,7 +523,7 @@ const NAV_ITENS = [
 
 ## 6. Autenticação e Autorização
 
-### 6.1 NextAuth com Credentials + Tenant
+### 6.1 NextAuth com Credentials + Cliente
 
 ```ts
 // lib/auth.ts
@@ -540,7 +540,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         const user = await db.query.usuarios.findFirst({
           where: eq(usuarios.email, credentials.email as string),
-          with: { tenant: true },
+          with: { cliente: true },
         })
 
         if (!user || !bcrypt.compareSync(credentials.password as string, user.password)) {
@@ -552,8 +552,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: user.email,
           name: user.nome,
           role: user.role,
-          tenantId: user.tenantId,
-          tenantSlug: user.tenant.slug,
+          clienteId: user.clienteId,
+          clienteSlug: user.cliente.slug,
         }
       },
     }),
@@ -561,15 +561,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     jwt({ token, user }) {
       if (user) {
-        token.tenantId = user.tenantId
-        token.tenantSlug = user.tenantSlug
+        token.clienteId = user.clienteId
+        token.clienteSlug = user.clienteSlug
         token.role = user.role
       }
       return token
     },
     session({ session, token }) {
-      session.user.tenantId = token.tenantId as number
-      session.user.tenantSlug = token.tenantSlug as string
+      session.user.clienteId = token.clienteId as number
+      session.user.clienteSlug = token.clienteSlug as string
       session.user.role = token.role as string
       return session
     },
@@ -590,8 +590,8 @@ declare module "next-auth" {
       email: string
       name: string
       role: string
-      tenantId: number
-      tenantSlug: string
+      clienteId: number
+      clienteSlug: string
     }
   }
 }
@@ -757,17 +757,17 @@ export function apiError(err: unknown) {
 
 ---
 
-## 11. Tabela `tenants` (Cadastro de Clientes)
+## 11. Tabela `clientes` (Cadastro de Clientes)
 
 ```ts
-// src/lib/db/schema/tenants.ts
+// src/lib/db/schema/clientes.ts
 import { pgTable, serial, varchar, timestamp, jsonb } from "drizzle-orm/pg-core"
 
-export const tenants = pgTable("tenants", {
+export const clientes = pgTable("clientes", {
   id: serial("id").primaryKey(),
   nome: varchar("nome", { length: 200 }).notNull(),
   slug: varchar("slug", { length: 100 }).unique().notNull(),
-  config: jsonb("config").default({}),    // configurações específicas do tenant
+  config: jsonb("config").default({}),    // configurações específicas do cliente
   logo: varchar("logo", { length: 500 }),  // URL do logo
   ativo: varchar("ativo", { length: 1 }).default("S"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -776,10 +776,10 @@ export const tenants = pgTable("tenants", {
 ```
 
 **Relacionamentos:**
-- `usuarios.tenant_id → tenants.id`
-- `edificacoes.tenant_id → tenants.id`
-- `sensores.tenant_id → tenants.id`
-- `leituras.tenant_id → tenants.id`
+- `usuarios.cliente_id → clientes.id`
+- `edificacoes.cliente_id → clientes.id`
+- `sensores.cliente_id → clientes.id`
+- `leituras.cliente_id → clientes.id`
 
 ---
 
@@ -815,7 +815,7 @@ os dados na tabela `leituras`.
 ### Convenção de Tópicos
 
 ```
-pdm/{tenant_slug}/{edificacao_id}/{entidade_id}/leitura
+pdm/{cliente_slug}/{edificacao_id}/{entidade_id}/leitura
 ```
 
 Exemplo:
@@ -838,9 +838,9 @@ Payload:
 
 1. ESP32 acorda, lê sensor, publica no tópico MQTT
 2. EMQX entrega a mensagem para o webhook `/api/mqtt/webhook`
-3. A API identifica `tenant`, `edificacao` e `entidade` pelo tópico
+3. A API identifica `cliente`, `edificacao` e `entidade` pelo tópico
 4. Insere linha na tabela `leituras`
-5. Emite evento Socket.IO para o dashboard do tenant atualizar em tempo real
+5. Emite evento Socket.IO para o dashboard do cliente atualizar em tempo real
 
 ### Stack MQTT sugerida
 
@@ -889,17 +889,17 @@ export async function POST(req: NextRequest) {
   // body contém: topic, payload, clientid, etc.
 
   const topicParts = body.topic.split("/")
-  // pdm/{tenant_slug}/{edificacao_id}/{entidade_id}/leitura
-  const [, tenantSlug, edificacaoId, entidadeId] = topicParts
+  // pdm/{cliente_slug}/{edificacao_id}/{entidade_id}/leitura
+  const [, clienteSlug, edificacaoId, entidadeId] = topicParts
 
-  const tenant = await db.query.tenants.findFirst({
-    where: (t, { eq }) => eq(t.slug, tenantSlug),
+  const cliente = await db.query.clientes.findFirst({
+    where: (t, { eq }) => eq(t.slug, clienteSlug),
   })
-  if (!tenant) return NextResponse.json({ error: "tenant not found" }, { status: 404 })
+  if (!cliente) return NextResponse.json({ error: "cliente not found" }, { status: 404 })
 
   const dados = JSON.parse(body.payload)
   await db.insert(leituras).values({
-    tenantId: tenant.id,
+    clienteId: cliente.id,
     entidadeId: Number(entidadeId),
     topicoMqtt: body.topic,
     valor: dados.valor,
@@ -908,7 +908,7 @@ export async function POST(req: NextRequest) {
   })
 
   // Emitir via Socket.IO para o dashboard
-  // getIO().to(`tenant:${tenant.id}`).emit("leitura", dados)
+  // getIO().to(`cliente:${cliente.id}`).emit("leitura", dados)
 
   return NextResponse.json({ ok: true })
 }
@@ -933,7 +933,7 @@ export async function POST(req: NextRequest) {
 | Segurança | Senhas com bcrypt, dados sensíveis com AES-256-GCM |
 | Banco | Drizzle schema + migrations SQL manuais e idempotentes |
 | API externa | Sempre via API Route (nunca do client direto) |
-| Tenant | Toda query tem `WHERE tenant_id = ?` |
+| Cliente | Toda query tem `WHERE cliente_id = ?` |
 | Tipagem | Nunca usar `any` — tipar retornos de API com `z.infer` |
 
 ---
@@ -944,12 +944,12 @@ export async function POST(req: NextRequest) {
 - [ ] Configurar Tailwind + globals.css + variáveis de tema (claro/escuro)
 - [ ] Instalar shadcn/ui (`npx shadcn@latest init`)
 - [ ] Configurar Drizzle ORM + PostgreSQL
-- [ ] Criar tabela `tenants` + schema Drizzle
-- [ ] Criar tabela `usuarios` com `tenant_id` + NextAuth
-- [ ] Extender tipos da sessão (`tenantId`, `role`)
+- [ ] Criar tabela `clientes` + schema Drizzle
+- [ ] Criar tabela `usuarios` com `cliente_id` + NextAuth
+- [ ] Extender tipos da sessão (`clienteId`, `role`)
 - [ ] Middleware de proteção de rotas
 - [ ] DashboardShell (sidebar + header + bottom nav)
-- [ ] Toda query de domínio filtra por `tenant_id`
+- [ ] Toda query de domínio filtra por `cliente_id`
 - [ ] Modelo extensível: `entidades_da_edificacao` com JSONB para atributos variáveis
 - [ ] Sistema de notificações (Sonner)
 - [ ] Error handler padrão (front + back)
@@ -958,11 +958,11 @@ export async function POST(req: NextRequest) {
 - [ ] Configurar EMQX (ou Mosquitto) como broker MQTT
 - [ ] Webhook `/api/mqtt/webhook` para persistir leituras
 - [ ] Socket.IO para tempo real no dashboard
-- [ ] Convenção de tópicos MQTT: `pdm/{tenant}/{edificacao}/{entidade}/leitura`
+- [ ] Convenção de tópicos MQTT: `pdm/{cliente}/{edificacao}/{entidade}/leitura`
 - [ ] README com instruções de setup e variáveis de ambiente
 
 ---
 
 > *"Um bom arquiteto de software projeta pensando no próximo sistema, não só no atual."*
 >
-> — Template SaaS Multi-Tenant, 2026
+> — Template SaaS Multi-Cliente, 2026

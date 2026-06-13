@@ -55,7 +55,7 @@ const features = [
   {
     icon: Shield,
     title: "Multi-empresas",
-    description: "Gestão multi-tenant com isolamento total de dados entre construtoras e obras.",
+    description: "Gestão multi-cliente com isolamento total de dados entre construtoras e obras.",
   },
   {
     icon: Smartphone,

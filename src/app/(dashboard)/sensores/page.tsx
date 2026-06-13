@@ -1,21 +1,21 @@
-import { getSession } from "@/lib/tenant"
+import { getSession } from "@/lib/cliente"
 import { db } from "@/lib/db"
 import { sensores } from "@/lib/db/schema/sensores"
 import { edificacoes } from "@/lib/db/schema/edificacoes"
-import { tenants } from "@/lib/db/schema/tenants"
+import { clientes } from "@/lib/db/schema/clientes"
 import { eq, and } from "drizzle-orm"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 
 export default async function SensoresPage() {
-  const { session, tenantId, isSuper } = await getSession()
+  const { session, clienteId, isSuper } = await getSession()
   if (!session) {
     return <p>Não autorizado</p>
   }
 
   const conditions = []
-  if (!isSuper) conditions.push(eq(sensores.tenantId, tenantId!))
+  if (!isSuper) conditions.push(eq(sensores.clienteId, clienteId!))
   const lista = await db.select({
     id: sensores.id,
     nome: sensores.nome,
@@ -23,14 +23,14 @@ export default async function SensoresPage() {
     descricao: sensores.descricao,
     ativo: sensores.ativo,
     edificacaoId: sensores.edificacaoId,
-    tenantId: sensores.tenantId,
-    tenantNome: tenants.nome,
+    clienteId: sensores.clienteId,
+    clienteNome: clientes.nome,
     edificacaoNome: edificacoes.nome,
   })
     .from(sensores)
     .where(and(...conditions))
     .leftJoin(edificacoes, eq(sensores.edificacaoId, edificacoes.id))
-    .leftJoin(tenants, eq(sensores.tenantId, tenants.id))
+    .leftJoin(clientes, eq(sensores.clienteId, clientes.id))
 
   return (
     <div className="space-y-6">
@@ -72,8 +72,8 @@ export default async function SensoresPage() {
                     )}
                     <div className="flex gap-2 text-xs text-[var(--text-secondary)] mt-0.5">
                       {sensor.edificacaoNome && <span>{sensor.edificacaoNome}</span>}
-                      {isSuper && sensor.tenantNome && (
-                        <span className="text-[var(--brand)]">{sensor.tenantNome}</span>
+                      {isSuper && sensor.clienteNome && (
+                        <span className="text-[var(--brand)]">{sensor.clienteNome}</span>
                       )}
                     </div>
                   </div>

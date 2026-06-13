@@ -1,16 +1,16 @@
-import { getSession } from "@/lib/tenant"
+import { getSession } from "@/lib/cliente"
 import { db } from "@/lib/db"
 import { leituras } from "@/lib/db/schema/leituras"
 import { eq, and } from "drizzle-orm"
 
 export default async function LeiturasPage() {
-  const { session, tenantId, isSuper } = await getSession()
+  const { session, clienteId, isSuper } = await getSession()
   if (!session) {
     return <p>Não autorizado</p>
   }
 
   const conditions = []
-  if (!isSuper) conditions.push(eq(leituras.tenantId, tenantId!))
+  if (!isSuper) conditions.push(eq(leituras.clienteId, clienteId!))
   const lista = await db.select()
     .from(leituras)
     .where(and(...conditions))

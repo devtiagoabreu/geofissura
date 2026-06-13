@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/tenant"
+import { getSession } from "@/lib/cliente"
 import { db } from "@/lib/db"
 import { notificacoesRegras } from "@/lib/db/schema/notificacoes-regras"
 import { eq, and, desc } from "drizzle-orm"
@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 
 export default async function NotificacoesRegrasPage() {
-  const { session, tenantId, isSuper } = await getSession()
+  const { session, clienteId, isSuper } = await getSession()
   if (!session) {
     return <p>Não autorizado</p>
   }
 
-  const conditions = isSuper ? [] : [eq(notificacoesRegras.tenantId, tenantId!)]
+  const conditions = isSuper ? [] : [eq(notificacoesRegras.clienteId, clienteId!)]
   const lista = await db
     .select()
     .from(notificacoesRegras)

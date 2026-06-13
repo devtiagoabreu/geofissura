@@ -3,7 +3,7 @@
   SEED CONCLUÍDO COM SUCESSO!
 ══════════════════════════════════════════════════
 
-┌─ Tenant 1 ──────────────────────────────────┐
+┌─ Cliente 1 ──────────────────────────────────┐
 │ Nome:      Vertical GeoLab                   │
 │ Email:     verticalgeolab@gmail.com           │
 │ Usuários:                                     │
@@ -19,7 +19,7 @@
 │ Cada uma com 5 sensores                       │
 └──────────────────────────────────────────────┘
 
-┌─ Tenant 2 ──────────────────────────────────┐
+┌─ Cliente 2 ──────────────────────────────────┐
 │ Nome:      Geométrica Construtora             │
 │ Email:     geometricaconstrutora@gmail.com    │
 │ Usuários:                                     │

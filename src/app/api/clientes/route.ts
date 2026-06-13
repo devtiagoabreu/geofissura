@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import { tenants } from "@/lib/db/schema/tenants"
-import { getSession } from "@/lib/tenant"
+import { clientes } from "@/lib/db/schema/clientes"
+import { getSession } from "@/lib/cliente"
 import { desc } from "drizzle-orm"
 import { apiError } from "@/lib/api-error"
 
@@ -14,8 +14,8 @@ export async function GET() {
 
     const dados = await db
       .select()
-      .from(tenants)
-      .orderBy(desc(tenants.createdAt))
+      .from(clientes)
+      .orderBy(desc(clientes.createdAt))
 
     return NextResponse.json(dados)
   } catch (err) {
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     }
 
     const [novo] = await db
-      .insert(tenants)
+      .insert(clientes)
       .values({ nome, slug })
       .returning()
 

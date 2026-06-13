@@ -1,11 +1,11 @@
 import { pgTable, serial, varchar, integer, timestamp, text } from "drizzle-orm/pg-core"
-import { tenants } from "./tenants"
+import { clientes } from "./clientes"
 import { edificacoes } from "./edificacoes"
 import { usuarios } from "./usuarios"
 
 export const documentos = pgTable("documentos", {
   id: serial("id").primaryKey(),
-  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  clienteId: integer("cliente_id").notNull().references(() => clientes.id),
   edificacaoId: integer("edificacao_id").notNull().references(() => edificacoes.id, { onDelete: "cascade" }),
   url: varchar("url", { length: 1000 }).notNull(),
   descricao: text("descricao").notNull(),

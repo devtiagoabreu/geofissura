@@ -1,9 +1,9 @@
 import { pgTable, serial, varchar, integer, numeric, boolean, timestamp, text } from "drizzle-orm/pg-core"
-import { tenants } from "./tenants"
+import { clientes } from "./clientes"
 
 export const notificacoesRegras = pgTable("notificacoes_regras", {
   id: serial("id").primaryKey(),
-  tenantId: integer("tenant_id").notNull().references(() => tenants.id),
+  clienteId: integer("cliente_id").notNull().references(() => clientes.id),
   nome: varchar("nome", { length: 200 }).notNull(),
   descricao: text("descricao"),
   sensorTipo: varchar("sensor_tipo", { length: 50 }),

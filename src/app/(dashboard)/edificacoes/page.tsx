@@ -1,31 +1,31 @@
-import { getSession } from "@/lib/tenant"
+import { getSession } from "@/lib/cliente"
 import { db } from "@/lib/db"
 import { edificacoes } from "@/lib/db/schema/edificacoes"
-import { tenants } from "@/lib/db/schema/tenants"
+import { clientes } from "@/lib/db/schema/clientes"
 import { eq, and } from "drizzle-orm"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 
 export default async function EdificacoesPage() {
-  const { session, tenantId, isSuper } = await getSession()
+  const { session, clienteId, isSuper } = await getSession()
   if (!session) {
     return <p>Não autorizado</p>
   }
 
   const conditions = []
-  if (!isSuper) conditions.push(eq(edificacoes.tenantId, tenantId!))
+  if (!isSuper) conditions.push(eq(edificacoes.clienteId, clienteId!))
   const lista = await db.select({
     id: edificacoes.id,
     nome: edificacoes.nome,
     endereco: edificacoes.endereco,
     ativo: edificacoes.ativo,
-    tenantId: edificacoes.tenantId,
-    tenantNome: tenants.nome,
+    clienteId: edificacoes.clienteId,
+    clienteNome: clientes.nome,
   })
     .from(edificacoes)
     .where(and(...conditions))
-    .leftJoin(tenants, eq(edificacoes.tenantId, tenants.id))
+    .leftJoin(clientes, eq(edificacoes.clienteId, clientes.id))
 
   return (
     <div className="space-y-6">
@@ -61,8 +61,8 @@ export default async function EdificacoesPage() {
                   {ed.endereco && (
                     <p className="text-sm text-[var(--text-secondary)]">{ed.endereco}</p>
                   )}
-                  {isSuper && ed.tenantNome && (
-                    <p className="text-xs text-[var(--brand)] mt-0.5">{ed.tenantNome}</p>
+                  {isSuper && ed.clienteNome && (
+                    <p className="text-xs text-[var(--brand)] mt-0.5">{ed.clienteNome}</p>
                   )}
                 </div>
                 <span

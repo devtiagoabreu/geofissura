@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/postgres-js"
 import postgres from "postgres"
-import * as tenants from "./schema/tenants"
+import * as clientes from "./schema/clientes"
 import * as usuarios from "./schema/usuarios"
 import * as edificacoes from "./schema/edificacoes"
 import * as sensores from "./schema/sensores"
@@ -19,5 +19,5 @@ if (!connectionString) {
 
 const client = postgres(connectionString, { prepare: false })
 export const db = drizzle(client, {
-  schema: { ...tenants, ...usuarios, ...edificacoes, ...sensores, ...leituras, ...documentos, ...notificacoesConfig, ...notificacoesRegras, ...notificacoesRegraDestinatarios, ...notificacoes },
+  schema: { ...clientes, ...usuarios, ...edificacoes, ...sensores, ...leituras, ...documentos, ...notificacoesConfig, ...notificacoesRegras, ...notificacoesRegraDestinatarios, ...notificacoes },
 })

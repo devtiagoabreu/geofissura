@@ -22,8 +22,8 @@ Plataforma SaaS para monitoramento de fissuras, trincas e movimentações estrut
 ## Funcionalidades
 
 - [x] **Landing page** — hero com animação Three.js, features, como funciona, CTA
-- [x] **Autenticação** — login com email/senha, sessão JWT com tenantId + role
-- [x] **Multi-tenancy** — isolamento total de dados por tenant
+- [x] **Autenticação** — login com email/senha, sessão JWT com clienteId + role
+- [x] **Multi-cliente** — isolamento total de dados por cliente
 - [x] **CRUD Edificações** — listar, criar, detalhe (editar/deletar em breve)
 - [x] **CRUD Sensores** — listar, criar, detalhe (modelo extensível via JSONB)
 - [x] **Leituras** — listagem com dados dos sensores IoT
@@ -31,7 +31,7 @@ Plataforma SaaS para monitoramento de fissuras, trincas e movimentações estrut
 - [x] **Webhook MQTT** — recebe dados dos dispositivos via EMQX
 - [ ] **Dashboard com gráficos** — Recharts
 - [x] **CRUD completo** — editar/deletar edificações e sensores
-- [ ] **Administração** — gerenciamento de usuários do tenant
+- [ ] **Administração** — gerenciamento de usuários do cliente
 - [x] **Upload de laudos** — links com descrição + usuário (Google Drive, etc)
 - [ ] **Notificações** — email/SMS para alertas
 

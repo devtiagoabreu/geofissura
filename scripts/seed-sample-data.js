@@ -3,7 +3,7 @@ const postgres = require("postgres")
 async function seedSensores() {
   const sql = postgres(process.env.DATABASE_URL, { prepare: false })
   try {
-    const [tenant] = await sql`SELECT id FROM tenants LIMIT 1`
+    const [tenant] = await sql`SELECT id FROM clientes LIMIT 1`
     const [ed] = await sql`SELECT id FROM edificacoes LIMIT 1`
 
     // Create sensor entities
@@ -20,7 +20,7 @@ async function seedSensores() {
     const sensoresCriados = []
     for (const s of sensores) {
       const [ent] = await sql`
-        INSERT INTO sensores (tenant_id, edificacao_id, tipo_sensor, nome, dados)
+        INSERT INTO sensores (cliente_id, edificacao_id, tipo_sensor, nome, dados)
         VALUES (${tenant.id}, ${ed.id}, ${s.tipo}, ${s.nome}, '{}')
         RETURNING id, tipo_sensor
       `
@@ -53,7 +53,7 @@ async function seedSensores() {
         const timestamp = new Date(Date.now() - (numLeituras - i) * 3600000)
         const valor = (base + (Math.random() - 0.5) * varianca * 2).toFixed(2)
         await sql`
-          INSERT INTO leituras (tenant_id, sensor_id, valor, unidade, lida_em)
+          INSERT INTO leituras (cliente_id, sensor_id, valor, unidade, lida_em)
           VALUES (${tenant.id}, ${ent.id}, ${valor}, ${unidade}, ${timestamp.toISOString()})
         `
         totalLeituras++

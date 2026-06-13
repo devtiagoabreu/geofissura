@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { notificacoesRegras } from "@/lib/db/schema/notificacoes-regras"
-import { getSession } from "@/lib/tenant"
+import { getSession } from "@/lib/cliente"
 import { eq } from "drizzle-orm"
 import { apiError } from "@/lib/api-error"
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { session, tenantId } = await getSession()
+    const { session } = await getSession()
     if (!session) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
     }

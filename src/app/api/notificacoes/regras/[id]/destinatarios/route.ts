@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { notificacoesRegraDestinatarios } from "@/lib/db/schema/notificacoes-regra-destinatarios"
-import { getSession } from "@/lib/tenant"
+import { getSession } from "@/lib/cliente"
 import { eq } from "drizzle-orm"
 import { apiError } from "@/lib/api-error"
 

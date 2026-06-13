@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/tenant"
+import { getSession } from "@/lib/cliente"
 import { db } from "@/lib/db"
 import { edificacoes } from "@/lib/db/schema/edificacoes"
 import { sensores } from "@/lib/db/schema/sensores"
@@ -8,24 +8,24 @@ import { Building2, Users, Activity, AlertTriangle } from "lucide-react"
 import { ReadingsChart } from "./chart"
 
 export default async function DashboardPage() {
-  const { session, tenantId, isSuper } = await getSession()
+  const { session, clienteId, isSuper } = await getSession()
   if (!session) {
     return <p>Não autorizado</p>
   }
 
   const buildConds = () => {
     const c: any[] = []
-    if (!isSuper) c.push(eq(edificacoes.tenantId, tenantId!))
+    if (!isSuper) c.push(eq(edificacoes.clienteId, clienteId!))
     return c
   }
   const sensorConds = () => {
     const c: any[] = []
-    if (!isSuper) c.push(eq(sensores.tenantId, tenantId!))
+    if (!isSuper) c.push(eq(sensores.clienteId, clienteId!))
     return c
   }
   const leitConds = () => {
     const c: any[] = []
-    if (!isSuper) c.push(eq(leituras.tenantId, tenantId!))
+    if (!isSuper) c.push(eq(leituras.clienteId, clienteId!))
     return c
   }
 

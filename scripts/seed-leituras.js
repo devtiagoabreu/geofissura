@@ -41,7 +41,7 @@ const gerarLeitura = (tipo) => {
 async function main() {
   const sql = postgres(process.env.DATABASE_URL, { prepare: false })
 
-  const sensores = await sql`SELECT id, tenant_id, tipo_sensor, nome FROM sensores ORDER BY id`
+  const sensores = await sql`SELECT id, cliente_id, tipo_sensor, nome FROM sensores ORDER BY id`
   console.log(`Encontrados ${sensores.length} sensores\n`)
 
   let total = 0
@@ -54,7 +54,7 @@ async function main() {
       const ts = new Date(now - i * 3 * 60 * 60 * 1000) // 3 em 3 horas
       const leitura = gerarLeitura(sensor.tipo_sensor)
       leituras.push({
-        tenant_id: sensor.tenant_id,
+        cliente_id: sensor.cliente_id,
         sensor_id: sensor.id,
         valor: leitura.valor,
         unidade: leitura.unidade,
@@ -64,8 +64,8 @@ async function main() {
 
     for (const l of leituras) {
       await sql`
-        INSERT INTO leituras (tenant_id, sensor_id, valor, unidade, lida_em)
-        VALUES (${l.tenant_id}, ${l.sensor_id}, ${l.valor}, ${l.unidade}, ${l.lida_em})
+        INSERT INTO leituras (cliente_id, sensor_id, valor, unidade, lida_em)
+        VALUES (${l.cliente_id}, ${l.sensor_id}, ${l.valor}, ${l.unidade}, ${l.lida_em})
       `
       total++
     }

@@ -1,19 +1,19 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { edificacoes } from "@/lib/db/schema/edificacoes"
-import { getSession } from "@/lib/tenant"
+import { getSession } from "@/lib/cliente"
 import { eq, and } from "drizzle-orm"
 import { apiError } from "@/lib/api-error"
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { session, tenantId, isSuper } = await getSession()
+    const { session, clienteId, isSuper } = await getSession()
     if (!session) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
     }
 
     const conditions = [eq(edificacoes.id, Number(params.id))]
-    if (!isSuper) conditions.push(eq(edificacoes.tenantId, tenantId!))
+    if (!isSuper) conditions.push(eq(edificacoes.clienteId, clienteId!))
     const dado = await db.query.edificacoes.findFirst({
       where: and(...conditions),
     })
@@ -30,14 +30,14 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { session, tenantId, isSuper } = await getSession()
+    const { session, clienteId, isSuper } = await getSession()
     if (!session) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
     }
 
     const body = await req.json()
     const updConditions = [eq(edificacoes.id, Number(params.id))]
-    if (!isSuper) updConditions.push(eq(edificacoes.tenantId, tenantId!))
+    if (!isSuper) updConditions.push(eq(edificacoes.clienteId, clienteId!))
     const [atualizado] = await db.update(edificacoes)
       .set(body)
       .where(and(...updConditions))
@@ -51,13 +51,13 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { session, tenantId, isSuper } = await getSession()
+    const { session, clienteId, isSuper } = await getSession()
     if (!session) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
     }
 
     const delConditions = [eq(edificacoes.id, Number(params.id))]
-    if (!isSuper) delConditions.push(eq(edificacoes.tenantId, tenantId!))
+    if (!isSuper) delConditions.push(eq(edificacoes.clienteId, clienteId!))
     await db.delete(edificacoes)
       .where(and(...delConditions))
 

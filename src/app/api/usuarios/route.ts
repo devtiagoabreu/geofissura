@@ -1,33 +1,33 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { usuarios } from "@/lib/db/schema/usuarios"
-import { tenants } from "@/lib/db/schema/tenants"
-import { getSession } from "@/lib/tenant"
+import { clientes } from "@/lib/db/schema/clientes"
+import { getSession } from "@/lib/cliente"
 import { eq, and } from "drizzle-orm"
 import { apiError } from "@/lib/api-error"
 import bcrypt from "bcryptjs"
 
 export async function GET() {
   try {
-    const { session, tenantId, isSuper } = await getSession()
+    const { session, clienteId, isSuper } = await getSession()
     if (!session) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
     }
 
-    const conditions = isSuper ? [] : [eq(usuarios.tenantId, tenantId!)]
+    const conditions = isSuper ? [] : [eq(usuarios.clienteId, clienteId!)]
     const dados = await db.select({
       id: usuarios.id,
-      tenantId: usuarios.tenantId,
+      clienteId: usuarios.clienteId,
       nome: usuarios.nome,
       email: usuarios.email,
       role: usuarios.role,
-      tenantNome: tenants.nome,
+      clienteNome: clientes.nome,
       createdAt: usuarios.createdAt,
       updatedAt: usuarios.updatedAt,
     })
       .from(usuarios)
       .where(and(...conditions))
-      .leftJoin(tenants, eq(usuarios.tenantId, tenants.id))
+      .leftJoin(clientes, eq(usuarios.clienteId, clientes.id))
 
     return NextResponse.json(dados)
   } catch (err) {
@@ -37,7 +37,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { session, tenantId } = await getSession()
+    const { session, clienteId, isSuper } = await getSession()
     if (!session) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
     }
@@ -45,13 +45,15 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const hashedPassword = bcrypt.hashSync(body.password as string, 10)
 
+    const targetClienteId = isSuper && body.clienteId ? Number(body.clienteId) : clienteId!
+
     const [novo] = await db.insert(usuarios)
       .values({
         nome: body.nome,
         email: body.email,
         password: hashedPassword,
         role: body.role ?? "USER",
-        tenantId: tenantId!,
+        clienteId: targetClienteId,
       })
       .returning()
 

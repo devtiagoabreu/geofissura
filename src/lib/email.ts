@@ -3,11 +3,11 @@ import { db } from "@/lib/db"
 import { notificacoesConfig } from "@/lib/db/schema/notificacoes-config"
 import { eq } from "drizzle-orm"
 
-export async function getTransporter(tenantId: number) {
+export async function getTransporter(clienteId: number) {
   const config = await db
     .select()
     .from(notificacoesConfig)
-    .where(eq(notificacoesConfig.tenantId, tenantId))
+    .where(eq(notificacoesConfig.clienteId, clienteId))
     .then((r) => r[0] ?? null)
 
   if (!config || !config.smtpUser || !config.smtpPass) {
@@ -22,14 +22,14 @@ export async function getTransporter(tenantId: number) {
   })
 }
 
-export function getFromAddress(tenantId: number, config?: { smtpFrom?: string | null; smtpUser?: string | null }) {
+export function getFromAddress(clienteId: number, config?: { smtpFrom?: string | null; smtpUser?: string | null }) {
   if (config?.smtpFrom) return config.smtpFrom
   if (config?.smtpUser) return config.smtpUser
   return "noreply@geofissura.com.br"
 }
 
 export async function sendNotificationEmail(
-  tenantId: number,
+  clienteId: number,
   to: string,
   subject: string,
   html: string
@@ -38,7 +38,7 @@ export async function sendNotificationEmail(
     const config = await db
       .select()
       .from(notificacoesConfig)
-      .where(eq(notificacoesConfig.tenantId, tenantId))
+      .where(eq(notificacoesConfig.clienteId, clienteId))
       .then((r) => r[0] ?? null)
 
     if (!config?.smtpUser || !config?.smtpPass) return false
@@ -51,7 +51,7 @@ export async function sendNotificationEmail(
     })
 
     await transporter.sendMail({
-      from: getFromAddress(tenantId, config),
+      from: getFromAddress(clienteId, config),
       to,
       subject,
       html,

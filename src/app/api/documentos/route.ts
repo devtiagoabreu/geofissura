@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { documentos } from "@/lib/db/schema/documentos"
 import { usuarios } from "@/lib/db/schema/usuarios"
-import { getSession } from "@/lib/tenant"
+import { getSession } from "@/lib/cliente"
 import { eq, and } from "drizzle-orm"
 import { apiError } from "@/lib/api-error"
 
 export async function GET(req: NextRequest) {
   try {
-    const { session, tenantId, isSuper } = await getSession()
+    const { session, clienteId, isSuper } = await getSession()
     if (!session) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
     }
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     }
 
     const conditions = [eq(documentos.edificacaoId, Number(edificacaoId))]
-    if (!isSuper) conditions.push(eq(documentos.tenantId, tenantId!))
+    if (!isSuper) conditions.push(eq(documentos.clienteId, clienteId!))
 
     const dados = await db.select({
       id: documentos.id,
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { session, tenantId } = await getSession()
+    const { session, clienteId } = await getSession()
     if (!session) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
     }
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const [novo] = await db.insert(documentos)
       .values({
-        tenantId: tenantId!,
+        clienteId: clienteId!,
         edificacaoId: Number(body.edificacaoId),
         url: body.url,
         descricao: body.descricao,

@@ -24,14 +24,14 @@ async function main() {
 
   // ── Tenant 1: Vertical GeoLab ──
   const [t1] = await sql`
-    INSERT INTO tenants (nome, slug, ativo)
+    INSERT INTO clientes (nome, slug, ativo)
     VALUES ('Vertical GeoLab', 'verticalgeolab', 'S')
     RETURNING id
   `
 
   // ── Tenant 2: Geométrica Construtora ──
   const [t2] = await sql`
-    INSERT INTO tenants (nome, slug, ativo)
+    INSERT INTO clientes (nome, slug, ativo)
     VALUES ('Geométrica Construtora', 'geometricaconstrutora', 'S')
     RETURNING id
   `
@@ -44,7 +44,7 @@ async function main() {
 
   // Vertical GeoLab users
   await sql`
-    INSERT INTO usuarios (tenant_id, nome, email, password, role) VALUES
+    INSERT INTO usuarios (cliente_id, nome, email, password, role) VALUES
     (${t1.id}, 'Carlos Mendes', 'admin@verticalgeolab.com', ${hash1}, 'ADMIN'),
     (${t1.id}, 'Ana Oliveira', 'ana@verticalgeolab.com', ${hash1}, 'USER'),
     (${t1.id}, 'Rafael Costa', 'rafael@verticalgeolab.com', ${hash1}, 'USER')
@@ -52,7 +52,7 @@ async function main() {
 
   // Geométrica Construtora users
   await sql`
-    INSERT INTO usuarios (tenant_id, nome, email, password, role) VALUES
+    INSERT INTO usuarios (cliente_id, nome, email, password, role) VALUES
     (${t2.id}, 'Juliana Torres', 'admin@geometricaconstrutora.com', ${hash2}, 'ADMIN'),
     (${t2.id}, 'Lucas Santos', 'lucas@geometricaconstrutora.com', ${hash2}, 'USER'),
     (${t2.id}, 'Fernanda Lima', 'fernanda@geometricaconstrutora.com', ${hash2}, 'USER')
@@ -81,13 +81,13 @@ async function main() {
 
   for (const ed of edificacoesT1) {
     const [e] = await sql`
-      INSERT INTO edificacoes (tenant_id, nome, endereco, ativo)
+      INSERT INTO edificacoes (cliente_id, nome, endereco, ativo)
       VALUES (${t1.id}, ${ed.nome}, ${ed.endereco}, 'S')
       RETURNING id
     `
     for (const s of tiposSensor) {
       await sql`
-        INSERT INTO sensores (tenant_id, edificacao_id, tipo_sensor, nome, dados)
+        INSERT INTO sensores (cliente_id, edificacao_id, tipo_sensor, nome, dados)
         VALUES (${t1.id}, ${e.id}, ${s.tipo}, ${s.nome} || ' #' || ${e.id}, ${sql.json({ unidade: s.unidade, fabricante: "GeoSense", modelo: "GS-" + s.tipo.substring(0, 4).toUpperCase(), instalacao: new Date().toISOString().split("T")[0] })})
       `
     }
@@ -95,13 +95,13 @@ async function main() {
 
   for (const ed of edificacoesT2) {
     const [e] = await sql`
-      INSERT INTO edificacoes (tenant_id, nome, endereco, ativo)
+      INSERT INTO edificacoes (cliente_id, nome, endereco, ativo)
       VALUES (${t2.id}, ${ed.nome}, ${ed.endereco}, 'S')
       RETURNING id
     `
     for (const s of tiposSensor) {
       await sql`
-        INSERT INTO sensores (tenant_id, edificacao_id, tipo_sensor, nome, dados)
+        INSERT INTO sensores (cliente_id, edificacao_id, tipo_sensor, nome, dados)
         VALUES (${t2.id}, ${e.id}, ${s.tipo}, ${s.nome} || ' #' || ${e.id}, ${sql.json({ unidade: s.unidade, fabricante: "GeoSense", modelo: "GS-" + s.tipo.substring(0, 4).toUpperCase(), instalacao: new Date().toISOString().split("T")[0] })})
       `
     }
@@ -148,7 +148,7 @@ async function main() {
     `│ Cada uma com 5 sensores                       │`,
     "└──────────────────────────────────────────────┘",
     "",
-    "Total: 2 tenants, 6 edificações, 30 sensores, 6 usuários",
+    "Total: 2 clientes, 6 edificações, 30 sensores, 6 usuários",
     "",
   ].join("\n")
 

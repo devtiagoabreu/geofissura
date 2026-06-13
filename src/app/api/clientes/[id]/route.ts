@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import { tenants } from "@/lib/db/schema/tenants"
-import { getSession } from "@/lib/tenant"
+import { clientes } from "@/lib/db/schema/clientes"
+import { getSession } from "@/lib/cliente"
 import { eq } from "drizzle-orm"
 import { apiError } from "@/lib/api-error"
 
@@ -13,17 +13,17 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     }
 
     const id = parseInt(params.id)
-    const tenant = await db
+    const cliente = await db
       .select()
-      .from(tenants)
-      .where(eq(tenants.id, id))
+      .from(clientes)
+      .where(eq(clientes.id, id))
       .then((r) => r[0] ?? null)
 
-    if (!tenant) {
-      return NextResponse.json({ error: "Tenant não encontrado" }, { status: 404 })
+    if (!cliente) {
+      return NextResponse.json({ error: "Cliente não encontrado" }, { status: 404 })
     }
 
-    return NextResponse.json(tenant)
+    return NextResponse.json(cliente)
   } catch (err) {
     return apiError(err)
   }
@@ -41,9 +41,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const { nome, slug, ativo } = body
 
     const [atualizado] = await db
-      .update(tenants)
+      .update(clientes)
       .set({ nome, slug, ativo, updatedAt: new Date() })
-      .where(eq(tenants.id, id))
+      .where(eq(clientes.id, id))
       .returning()
 
     return NextResponse.json(atualizado)
@@ -60,7 +60,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     }
 
     const id = parseInt(params.id)
-    await db.delete(tenants).where(eq(tenants.id, id))
+    await db.delete(clientes).where(eq(clientes.id, id))
 
     return NextResponse.json({ success: true })
   } catch (err) {

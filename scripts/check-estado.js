@@ -23,28 +23,28 @@ async function main() {
 
   console.log("=== ESTADO ATUAL ===\n")
 
-  const tenants = await sql`SELECT * FROM tenants`
+  const clientes = await sql`SELECT * FROM clientes`
   console.log("TENANTS:")
-  for (const t of tenants) {
+  for (const t of clientes) {
     console.log(`  [${t.id}] ${t.nome} (${t.slug})`)
   }
 
-  const usuarios = await sql`SELECT id, tenant_id, nome, email, role FROM usuarios`
+  const usuarios = await sql`SELECT id, cliente_id, nome, email, role FROM usuarios`
   console.log("\nUSUÁRIOS:")
   for (const u of usuarios) {
-    console.log(`  [${u.id}] tenant=${u.tenant_id}  ${u.email}  role=${u.role}  nome=${u.nome}`)
+    console.log(`  [${u.id}] cliente=${u.cliente_id}  ${u.email}  role=${u.role}  nome=${u.nome}`)
   }
 
-  const edf = await sql`SELECT id, tenant_id, nome FROM edificacoes`
+  const edf = await sql`SELECT id, cliente_id, nome FROM edificacoes`
   console.log("\nEDIFICAÇÕES:")
   for (const e of edf) {
-    console.log(`  [${e.id}] tenant=${e.tenant_id}  ${e.nome}`)
+    console.log(`  [${e.id}] cliente=${e.cliente_id}  ${e.nome}`)
   }
 
-  const sens = await sql`SELECT id, tenant_id, edificacao_id, tipo_sensor, nome FROM sensores`
+  const sens = await sql`SELECT id, cliente_id, edificacao_id, tipo_sensor, nome FROM sensores`
   console.log("\nSENSORES:")
   for (const s of sens) {
-    console.log(`  [${s.id}] tenant=${s.tenant_id}  edf=${s.edificacao_id}  ${s.tipo_sensor}  ${s.nome}`)
+    console.log(`  [${s.id}] cliente=${s.cliente_id}  edf=${s.edificacao_id}  ${s.tipo_sensor}  ${s.nome}`)
   }
 
   await sql.end()

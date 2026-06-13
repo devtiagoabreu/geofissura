@@ -14,11 +14,11 @@ interface Usuario {
   nome: string
   email: string
   role: string
-  tenantId: number
+  clienteId: number
   createdAt: string | null
 }
 
-interface Tenant {
+interface Cliente {
   id: number
   nome: string
   slug: string
@@ -40,12 +40,12 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
 }
 
 interface UserListProps {
-  tenantId: number
+  clienteId: number
   back: () => void
-  tenantNome: string
+  clienteNome: string
 }
 
-function UserList({ tenantId, back, tenantNome }: UserListProps) {
+function UserList({ clienteId, back, clienteNome }: UserListProps) {
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -57,11 +57,11 @@ function UserList({ tenantId, back, tenantNome }: UserListProps) {
     setLoading(true)
     fetch("/api/usuarios")
       .then((r) => r.json())
-      .then((data) => setUsuarios(data.filter((u: Usuario) => u.tenantId === tenantId)))
+      .then((data) => setUsuarios(data.filter((u: Usuario) => u.clienteId === clienteId)))
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { load() }, [tenantId])
+  useEffect(() => { load() }, [clienteId])
 
   async function handleCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); setSaving(true)
@@ -70,7 +70,7 @@ function UserList({ tenantId, back, tenantNome }: UserListProps) {
       const res = await fetch("/api/usuarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome: form.get("nome"), email: form.get("email"), password: form.get("password"), role: form.get("role") }),
+        body: JSON.stringify({ nome: form.get("nome"), email: form.get("email"), password: form.get("password"), role: form.get("role"), clienteId }),
       })
       if (!res.ok) throw new Error()
       toast.success("Usuário criado"); setShowForm(false); load()
@@ -101,8 +101,8 @@ function UserList({ tenantId, back, tenantNome }: UserListProps) {
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={back}><ArrowLeft className="h-4 w-4" /></Button>
         <div className="flex-1">
-          <h2 className="text-lg font-semibold">{tenantNome}</h2>
-          <p className="text-sm text-[var(--text-secondary)]">Usuários do tenant</p>
+          <h2 className="text-lg font-semibold">{clienteNome}</h2>
+          <p className="text-sm text-[var(--text-secondary)]">Usuários do cliente</p>
         </div>
         <Button onClick={() => setShowForm(!showForm)} size="sm"><Plus className="mr-1 h-4 w-4" />Novo Usuário</Button>
       </div>
@@ -132,7 +132,7 @@ function UserList({ tenantId, back, tenantNome }: UserListProps) {
         {loading ? (
           <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-[var(--brand)]" /></div>
         ) : usuarios.length === 0 ? (
-          <div className="p-6 text-center text-sm text-[var(--text-secondary)]">Nenhum usuário neste tenant</div>
+          <div className="p-6 text-center text-sm text-[var(--text-secondary)]">Nenhum usuário neste cliente</div>
         ) : (
           <div className="divide-y divide-[var(--border)]">
             {usuarios.map((u) => (
@@ -199,24 +199,24 @@ function UserList({ tenantId, back, tenantNome }: UserListProps) {
   )
 }
 
-function TenantsTab() {
+function ClientesTab() {
   const router = useRouter()
-  const [tenants, setTenants] = useState<Tenant[]>([])
+  const [clientes, setClientes] = useState<Cliente[]>([])
   const [allUsers, setAllUsers] = useState<Usuario[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
-  const [editForm, setEditForm] = useState<Partial<Tenant>>({})
-  const [selectedTenant, setSelectedTenant] = useState<{ id: number; nome: string } | null>(null)
+  const [editForm, setEditForm] = useState<Partial<Cliente>>({})
+  const [selectedCliente, setSelectedCliente] = useState<{ id: number; nome: string } | null>(null)
 
   function load() {
     setLoading(true)
     Promise.all([
-      fetch("/api/tenants").then((r) => r.json()),
+      fetch("/api/clientes").then((r) => r.json()),
       fetch("/api/usuarios").then((r) => r.json()),
     ]).then(([t, u]) => {
-      setTenants(t)
+      setClientes(t)
       setAllUsers(u)
     }).catch(() => router.push("/dashboard"))
     .finally(() => setLoading(false))
@@ -228,39 +228,39 @@ function TenantsTab() {
     e.preventDefault(); setSaving(true)
     const form = new FormData(e.currentTarget)
     try {
-      const res = await fetch("/api/tenants", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nome: form.get("nome"), slug: form.get("slug") }) })
-      if (!res.ok) throw new Error(); toast.success("Tenant criado!"); setShowForm(false); load()
+      const res = await fetch("/api/clientes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nome: form.get("nome"), slug: form.get("slug") }) })
+      if (!res.ok) throw new Error(); toast.success("Cliente criado!"); setShowForm(false); load()
     } catch { toast.error("Erro ao criar") }
     finally { setSaving(false) }
   }
 
   async function handleEditSave(id: number) {
     try {
-      const res = await fetch(`/api/tenants/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(editForm) })
-      if (!res.ok) throw new Error(); toast.success("Tenant atualizado"); setEditingId(null); load()
+      const res = await fetch(`/api/clientes/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(editForm) })
+      if (!res.ok) throw new Error(); toast.success("Cliente atualizado"); setEditingId(null); load()
     } catch { toast.error("Erro ao atualizar") }
   }
 
   async function handleDelete(id: number, nome: string) {
     if (!confirm(`Excluir "${nome}"? Todas as edificações, sensores e usuários serão removidos.`)) return
-    try { await fetch(`/api/tenants/${id}`, { method: "DELETE" }); toast.success("Excluído"); load() }
+    try { await fetch(`/api/clientes/${id}`, { method: "DELETE" }); toast.success("Excluído"); load() }
     catch { toast.error("Erro ao excluir") }
   }
 
-  if (selectedTenant) {
-    return <UserList tenantId={selectedTenant.id} tenantNome={selectedTenant.nome} back={() => setSelectedTenant(null)} />
+  if (selectedCliente) {
+    return <UserList clienteId={selectedCliente.id} clienteNome={selectedCliente.nome} back={() => setSelectedCliente(null)} />
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-[var(--text-secondary)]">Clientes cadastrados no sistema</p>
-        <Button onClick={() => setShowForm(!showForm)} size="sm"><Plus className="mr-1 h-4 w-4" />Novo Tenant</Button>
+        <Button onClick={() => setShowForm(!showForm)} size="sm"><Plus className="mr-1 h-4 w-4" />Novo Cliente</Button>
       </div>
 
       {showForm && (
         <form onSubmit={handleCreate} className="max-w-lg rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] p-6 shadow-sm space-y-4">
-          <h2 className="font-semibold">Cadastrar Tenant</h2>
+          <h2 className="font-semibold">Cadastrar Cliente</h2>
           <div className="space-y-2"><Label>Nome</Label><Input name="nome" required placeholder="Ex: Construtora XYZ" /></div>
           <div className="space-y-2"><Label>Slug</Label><Input name="slug" required placeholder="Ex: construtora-xyz" /></div>
           <div className="flex gap-2">
@@ -273,12 +273,12 @@ function TenantsTab() {
       <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] shadow-sm">
         {loading ? (
           <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-[var(--brand)]" /></div>
-        ) : tenants.length === 0 ? (
-          <div className="p-6 text-center text-sm text-[var(--text-secondary)]">Nenhum tenant</div>
+        ) : clientes.length === 0 ? (
+          <div className="p-6 text-center text-sm text-[var(--text-secondary)]">Nenhum cliente</div>
         ) : (
           <div className="divide-y divide-[var(--border)]">
-            {tenants.map((t) => {
-              const userCount = allUsers.filter((u) => u.tenantId === t.id).length
+            {clientes.map((t) => {
+              const userCount = allUsers.filter((u) => u.clienteId === t.id).length
               return (
                 <div key={t.id} className="flex items-center justify-between p-4">
                   {editingId === t.id ? (
@@ -300,7 +300,7 @@ function TenantsTab() {
                     </div>
                   ) : (
                     <>
-                      <button onClick={() => setSelectedTenant({ id: t.id, nome: t.nome })} className="flex items-center gap-3 min-w-0 flex-1 text-left">
+                      <button onClick={() => setSelectedCliente({ id: t.id, nome: t.nome })} className="flex items-center gap-3 min-w-0 flex-1 text-left">
                         <div className="h-9 w-9 rounded-full bg-[var(--brand)]/10 flex items-center justify-center shrink-0">
                           <Building2 className="h-4 w-4 text-[var(--brand)]" />
                         </div>
@@ -334,7 +334,7 @@ function TenantsTab() {
 }
 
 export default function AdminPage() {
-  const [tab, setTab] = useState<"usuarios" | "tenants">("tenants")
+  const [tab, setTab] = useState<"usuarios" | "clientes">("clientes")
   const { data: session } = useSession()
   const isSuper = session?.user?.role === "SUPER"
 
@@ -342,10 +342,10 @@ export default function AdminPage() {
     <div className="space-y-6">
       <div><h1 className="text-2xl font-bold">Administração</h1><p className="text-sm text-[var(--text-secondary)]">Configurações do sistema</p></div>
       <div className="flex gap-2 border-b border-[var(--border)] pb-2">
-        <TabButton active={tab === "tenants"} onClick={() => setTab("tenants")}>Tenants</TabButton>
+        <TabButton active={tab === "clientes"} onClick={() => setTab("clientes")}>Clientes</TabButton>
         {isSuper && <TabButton active={tab === "usuarios"} onClick={() => setTab("usuarios")}>Todos Usuários</TabButton>}
       </div>
-      {tab === "tenants" && <TenantsTab />}
+      {tab === "clientes" && <ClientesTab />}
       {tab === "usuarios" && <UsuariosGlobalTab />}
     </div>
   )
@@ -386,7 +386,7 @@ function UsuariosGlobalTab() {
                 <div className="min-w-0">
                   <p className="font-medium truncate">{u.nome}</p>
                   <p className="text-xs text-[var(--text-secondary)] truncate">{u.email}</p>
-                  {isSuper && (u as any).tenantNome && <p className="text-xs text-[var(--brand)] truncate">{(u as any).tenantNome}</p>}
+                  {isSuper && (u as any).clienteNome && <p className="text-xs text-[var(--brand)] truncate">{(u as any).clienteNome}</p>}
                 </div>
               </div>
               <span className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${

@@ -2,7 +2,7 @@
 
 ## Sobre o Projeto
 
-**GeoFissuras** é uma plataforma SaaS que monitora edificações com equipamentos inteligentes (ESP32, sensores) e inteligência artificial. Construtoras (clientes/tenants) cadastram edificações, cada edificação pode ter engenheiros, arquitetos, equipamentos, monitores de fissura, sensores, laudos técnicos — sistema extensível para novos tipos sem reestruturar o banco.
+**GeoFissuras** é uma plataforma SaaS que monitora edificações com equipamentos inteligentes (ESP32, sensores) e inteligência artificial. Construtoras (clientes/clientes) cadastram edificações, cada edificação pode ter engenheiros, arquitetos, equipamentos, monitores de fissura, sensores, laudos técnicos — sistema extensível para novos tipos sem reestruturar o banco.
 
 ## Stack Tecnológica
 
@@ -30,8 +30,8 @@
 
 ## Arquitetura de Dados
 
-### Multi-Tenancy
-Cada cliente = um **tenant**. Isolamento por `tenant_id` em todas as tabelas. Sessão contém `tenantId` e toda query filtra por ele.
+### Multi-Cliente
+Cada cliente = um **cliente**. Isolamento por `cliente_id` em todas as tabelas. Sessão contém `clienteId` e toda query filtra por ele.
 
 ### Modelo Extensível
 `sensores` com `tipo_sensor` (VARCHAR) + `dados` (JSONB) permite qualquer tipo de sensor sem criar tabelas novas:
@@ -41,14 +41,14 @@ Cada cliente = um **tenant**. Isolamento por `tenant_id` em todas as tabelas. Se
 - Laudo → `{ "responsavel": "Dr. Silva", "data": "2026-01-15", "anexo_url": "..." }`
 
 ### Tabelas Principais
-- `tenants` — clientes do SaaS
-- `usuarios` — usuários com `tenant_id`
-- `edificacoes` — edificações por tenant
+- `clientes` — clientes do SaaS
+- `usuarios` — usuários com `cliente_id`
+- `edificacoes` — edificações por cliente
 - `sensores` — sensores extensíveis (JSONB)
 - `leituras` — dados temporais dos sensores
 
 ### Convenção MQTT
-Tópicos: `pdm/{tenant_slug}/{edificacao_id}/{sensor_id}/leitura`
+Tópicos: `pdm/{cliente_slug}/{edificacao_id}/{sensor_id}/leitura`
 
 ## Padrões de Código
 
@@ -56,7 +56,7 @@ Tópicos: `pdm/{tenant_slug}/{edificacao_id}/{sensor_id}/leitura`
 - Nomes em português (UI visível), código em inglês (lógica)
 - Arquivos em **kebab-case**
 - SQL em **snake_case**, TypeScript em **camelCase** (Drizzle mapeia)
-- Toda tabela de domínio: `tenant_id`, `id`, `created_at`, `updated_at`
+- Toda tabela de domínio: `cliente_id`, `id`, `created_at`, `updated_at`
 - Caminhos absolutos com `@/`
 - Componentes reutilizáveis SEM `export default` — só nomeado
 - Páginas (app router) SEM `export default` nomeado — só `export default`
@@ -68,7 +68,7 @@ Tópicos: `pdm/{tenant_slug}/{edificacao_id}/{sensor_id}/leitura`
 src/
 ├── app/
 │   ├── (auth)/           # Login, registro, recover
-│   ├── (dashboard)/      # Grupo protegido (requer sessão + tenant)
+│   ├── (dashboard)/      # Grupo protegido (requer sessão + cliente)
 │   │   ├── modulo-x/
 │   │   ├── layout.tsx    # Dashboard shell (sidebar + header)
 │   │   └── page.tsx      # Dashboard principal
@@ -99,7 +99,7 @@ src/
 
 1. Cada tecnologia resolve um problema específico. Se não resolve, não use.
 2. Migrations SQL: `CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`, idempotentes
-3. Toda query de domínio filtra por `tenant_id`
+3. Toda query de domínio filtra por `cliente_id`
 4. Senhas com bcrypt, dados sensíveis com AES-256-GCM
 5. API externa sempre via API Route (nunca do client direto)
 6. shadcn/ui como base de componentes
@@ -115,15 +115,15 @@ src/
 ### Migrations
 ```bash
 pnpm db:migrate    # Executa scripts SQL em ordem numérica
-pnpm db:seed       # Cria tenant, admin e dados de exemplo
+pnpm db:seed       # Cria cliente, admin e dados de exemplo
 ```
 
 ### Seed (Desenvolvimento)
-- Tenant: Construtora ABC
+- Cliente: Construtora ABC
 - Admin: admin@geofissuras.com / admin123
 - Edificação: Edifício Comercial ABC
 
 ### Tabelas (Neon - sa-east-1)
-- `tenants`, `usuarios`, `edificacoes`, `entidades_da_edificacao`, `leituras`
+- `clientes`, `usuarios`, `edificacoes`, `entidades_da_edificacao`, `leituras`
 - Criadas via migration `0001_estrutura_inicial.sql`
-- Todas com `tenant_id`, índices e chaves estrangeiras
+- Todas com `cliente_id`, índices e chaves estrangeiras

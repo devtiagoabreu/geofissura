@@ -7,19 +7,19 @@ declare module "next-auth" {
       email: string
       name: string
       role: string
-      tenantId: number
+      clienteId: number
     }
   }
 
   interface User {
-    tenantId: number
+    clienteId: number
     role: string
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
-    tenantId: number
+    clienteId: number
     role: string
   }
 }
