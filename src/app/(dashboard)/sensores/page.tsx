@@ -1,6 +1,8 @@
 import { getSession } from "@/lib/tenant"
 import { db } from "@/lib/db"
 import { sensores } from "@/lib/db/schema/sensores"
+import { edificacoes } from "@/lib/db/schema/edificacoes"
+import { tenants } from "@/lib/db/schema/tenants"
 import { eq, and } from "drizzle-orm"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -14,9 +16,21 @@ export default async function SensoresPage() {
 
   const conditions = []
   if (!isSuper) conditions.push(eq(sensores.tenantId, tenantId!))
-  const lista = await db.select()
+  const lista = await db.select({
+    id: sensores.id,
+    nome: sensores.nome,
+    tipoSensor: sensores.tipoSensor,
+    descricao: sensores.descricao,
+    ativo: sensores.ativo,
+    edificacaoId: sensores.edificacaoId,
+    tenantId: sensores.tenantId,
+    tenantNome: tenants.nome,
+    edificacaoNome: edificacoes.nome,
+  })
     .from(sensores)
     .where(and(...conditions))
+    .leftJoin(edificacoes, eq(sensores.edificacaoId, edificacoes.id))
+    .leftJoin(tenants, eq(sensores.tenantId, tenants.id))
 
   return (
     <div className="space-y-6">
@@ -56,6 +70,12 @@ export default async function SensoresPage() {
                     {sensor.descricao && (
                       <p className="text-sm text-[var(--text-secondary)]">{sensor.descricao}</p>
                     )}
+                    <div className="flex gap-2 text-xs text-[var(--text-secondary)] mt-0.5">
+                      {sensor.edificacaoNome && <span>{sensor.edificacaoNome}</span>}
+                      {isSuper && sensor.tenantNome && (
+                        <span className="text-[var(--brand)]">{sensor.tenantNome}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Link>

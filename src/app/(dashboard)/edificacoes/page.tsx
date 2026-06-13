@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/tenant"
 import { db } from "@/lib/db"
 import { edificacoes } from "@/lib/db/schema/edificacoes"
+import { tenants } from "@/lib/db/schema/tenants"
 import { eq, and } from "drizzle-orm"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -14,9 +15,17 @@ export default async function EdificacoesPage() {
 
   const conditions = []
   if (!isSuper) conditions.push(eq(edificacoes.tenantId, tenantId!))
-  const lista = await db.select()
+  const lista = await db.select({
+    id: edificacoes.id,
+    nome: edificacoes.nome,
+    endereco: edificacoes.endereco,
+    ativo: edificacoes.ativo,
+    tenantId: edificacoes.tenantId,
+    tenantNome: tenants.nome,
+  })
     .from(edificacoes)
     .where(and(...conditions))
+    .leftJoin(tenants, eq(edificacoes.tenantId, tenants.id))
 
   return (
     <div className="space-y-6">
@@ -51,6 +60,9 @@ export default async function EdificacoesPage() {
                   <p className="font-medium">{ed.nome}</p>
                   {ed.endereco && (
                     <p className="text-sm text-[var(--text-secondary)]">{ed.endereco}</p>
+                  )}
+                  {isSuper && ed.tenantNome && (
+                    <p className="text-xs text-[var(--brand)] mt-0.5">{ed.tenantNome}</p>
                   )}
                 </div>
                 <span

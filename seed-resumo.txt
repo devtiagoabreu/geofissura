@@ -1,0 +1,38 @@
+
+══════════════════════════════════════════════════
+  SEED CONCLUÍDO COM SUCESSO!
+══════════════════════════════════════════════════
+
+┌─ Tenant 1 ──────────────────────────────────┐
+│ Nome:      Vertical GeoLab                   │
+│ Email:     verticalgeolab@gmail.com           │
+│ Usuários:                                     │
+│   admin@verticalgeolab.com                    │
+│   ana@verticalgeolab.com                      │
+│   rafael@verticalgeolab.com                   │
+│ SENHA:     Vg@2026!                                           │
+├──────────────────────────────────────────────┤
+│ Edificações:                                  │
+│   1. Torre Corporate Empire State             │
+│   2. Residencial Vista do Parque              │
+│   3. Galpão Industrial LogTech                │
+│ Cada uma com 5 sensores                       │
+└──────────────────────────────────────────────┘
+
+┌─ Tenant 2 ──────────────────────────────────┐
+│ Nome:      Geométrica Construtora             │
+│ Email:     geometricaconstrutora@gmail.com    │
+│ Usuários:                                     │
+│   admin@geometricaconstrutora.com             │
+│   lucas@geometricaconstrutora.com             │
+│   fernanda@geometricaconstrutora.com          │
+│ SENHA:     Geo@2026!                                          │
+├──────────────────────────────────────────────┤
+│ Edificações:                                  │
+│   1. Edifício Comercial Nova Aurora           │
+│   2. Condomínio Residencial Verde Vale        │
+│   3. Centro Logístico Sul Brasil              │
+│ Cada uma com 5 sensores                       │
+└──────────────────────────────────────────────┘
+
+Total: 2 tenants, 6 edificações, 30 sensores, 6 usuários

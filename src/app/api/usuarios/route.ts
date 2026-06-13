@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { usuarios } from "@/lib/db/schema/usuarios"
+import { tenants } from "@/lib/db/schema/tenants"
 import { getSession } from "@/lib/tenant"
-import { eq, and, ne } from "drizzle-orm"
+import { eq, and } from "drizzle-orm"
 import { apiError } from "@/lib/api-error"
 import bcrypt from "bcryptjs"
 
@@ -20,11 +21,13 @@ export async function GET() {
       nome: usuarios.nome,
       email: usuarios.email,
       role: usuarios.role,
+      tenantNome: tenants.nome,
       createdAt: usuarios.createdAt,
       updatedAt: usuarios.updatedAt,
     })
       .from(usuarios)
       .where(and(...conditions))
+      .leftJoin(tenants, eq(usuarios.tenantId, tenants.id))
 
     return NextResponse.json(dados)
   } catch (err) {
