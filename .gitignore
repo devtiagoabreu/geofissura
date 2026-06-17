@@ -2,6 +2,10 @@
 variaveis.md
 response_body.txt
 
+# graphify internal temp files
+graphify-out/.graphify_*
+graphify-out/cache/
+
 # Logs
 logs
 *.log
