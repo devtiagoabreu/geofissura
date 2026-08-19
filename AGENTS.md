@@ -82,7 +82,7 @@ Três repositórios de aplicação + documentação integrada:
 - **Alembic:** migration `001_initial.py` com tabelas `image_observations` + `locals`
 - **Commits:** `71c416e`, `e79ba09`, `df1f070`
 
-### 5. Suite de testes completa (162 testes)
+### 5. Suite de testes completa (170 testes)
 
 **vision-platform-local — 105 testes:**
 
@@ -99,7 +99,7 @@ Três repositórios de aplicação + documentação integrada:
 | `test_devices.py` | 12 | device CRUD, page render, upsert, task types, auth |
 | `test_e2e.py` | 12 | full delivery flow, retry, failure, idempotent, batch, ack, health, flush |
 
-**vision-platform-central — 57 testes:**
+**vision-platform-central — 65 testes:**
 
 | Arquivo | Testes | Módulo |
 |---------|--------|--------|
@@ -108,6 +108,7 @@ Três repositórios de aplicação + documentação integrada:
 | `test_health.py` | 22 | health counts, locals CRUD, observations filters, receive, poll |
 | `test_auth.py` | 3 | password hash/verify, wrong password, different hashes |
 | `test_dashboard_auth.py` | 10 | login page, valid/wrong/nonexistent credentials, redirect, logout, auth-protected pages |
+| `test_devices.py` | 8 | device page render, task types, multiple locals, status |
 | `test_e2e.py` | 8 | receive + query, duplicate idempotent, poll, locals CRUD, filters |
 
 ### 6. Web Dashboards com login (commits `2ddd7a2` local, `141a178` central)
@@ -117,6 +118,17 @@ Três repositórios de aplicação + documentação integrada:
 - **Dashboard routes** (`src/api/dashboard_routes.py`): todas rotas `/dashboard/*` protegidas por JWT
 - **JWT via HTTP-only cookie**, httponly, samesite=lax, 24h expiry
 - **Dependências**: jinja2, python-multipart, passlib[bcrypt], pyjwt
+
+### 7. Multi-device management (commits `bc1d01c` local, `e3da907` central)
+- **Device ORM model** (`Device` no local, `DeviceRecord` no central): device_id, name, device_type, task_type, connection_type/connection_config
+- **Alembic migration 002_devices** (local) e **002_device_records** (central)
+- **Dashboard CRUD** (local): página completa com HTMX para criar/editar/excluir devices
+- **Dashboard view** (central): visualização read-only dos devices sincronizados dos locais
+- **4 task types**: `fissure`, `ppe`, `fabric_quality`, `structural`
+- **3 device types**: `camera`, `sensor`, `other`
+- **4 connection types** (local): `rtsp`, `mqtt`, `http`, `serial`
+- **Auto-seed**: device câmera criada automaticamente a partir das variáveis `CAMERA_*` no .env
+- **Sidebar**: renomeado de "Câmera" para "Devices" em ambos repos
 
 ## Próximos passos (MVP Intelbras)
 
