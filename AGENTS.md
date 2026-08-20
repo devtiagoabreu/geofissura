@@ -1,6 +1,6 @@
 # GeoFissura — Session State
 
-> Última atualização: 2026-08-18
+> Última atualização: 2026-08-19
 
 ## Câmera de teste
 
@@ -130,6 +130,27 @@ Três repositórios de aplicação + documentação integrada:
 - **Auto-seed**: device câmera criada automaticamente a partir das variáveis `CAMERA_*` no .env
 - **Sidebar**: renomeado de "Câmera" para "Devices" em ambos repos
 
+### 8. Auto-capture, monitoring capture, camera config completo (commit `6a939a3`)
+- **Auto-capture por device**: `auto_capture_enabled`, `auto_capture_interval_minutes`, `last_auto_capture_at` no modelo Device
+- **Alembic migration 003_auto_capture**: adiciona 3 colunas à tabela devices
+- **Monitoring capture endpoint**: `POST /dashboard/monitoring/capture` com CaptureWorker
+- **Config completa da câmera no add/edit modal**: IP, hostname, username, password, channel, stream type, transport, manufacturer, model, JPEG quality, resolution
+- **Evidence dir**: alterado de `/var/lib/...` para `./evidence` (dentro do projeto)
+- **Device.to_dict()**: inclui `last_auto_capture_at` para serialização Jinja2
+- **134 testes passando**, ruff lint clean
+
+### 9. Arquitetura de processamento de visão computacional (documento)
+- **Pesquisa completa** de repositórios open-source para 6 categorias:
+  - Fissuras/rachaduras (Crack-Seg, Crack500, DeepCrack)
+  - Identificação de pessoas e rastreamento (ByteTrack, OSNet ReID)
+  - EPI (SH17, Construction-Safety, zone polygon enforcement)
+  - Placas de veículos (fast-alpr, openalpr, HMAC hashing)
+  - Contagem de objetos (Ultralytics ObjectCounter/RegionCounter)
+  - Defeitos em tecidos (YOLOv8m-seg, MVTec AD, classical CV fallback)
+- **Schema proposto**: `processing_results`, `tracking_sessions`, `zone_configs`
+- **Decisão**: Ultralytics YOLO unificado para todos os módulos, ONNX Runtime para edge
+- **Documento**: `.agent/docs/vision-platform-processing-architecture.md`
+
 ## Próximos passos (MVP Intelbras)
 
 ### Fase 1 — Deploy no hardware (próximo)
@@ -147,8 +168,13 @@ Três repositórios de aplicação + documentação integrada:
 10. Testar delivery_queue sob carga
 
 ### Fase 3 — Visão computacional (futuro)
-11. Detecção dos 6 círculos na imagem
-12. Medição da etiqueta (crop + OCR/processamento)
+- [Documento completo](.agent/docs/vision-platform-processing-architecture.md)
+11. Criar migrations: `processing_results`, `tracking_sessions`, `zone_configs`
+12. Implementar `VisionPipeline` + módulos de detecção
+13. Treinar modelos: FissureDetector (Crack-Seg), PPEDetector (SH17), PlateDetector (fast-alpr)
+14. Deploy ONNX Runtime no Orange Pi
+15. Benchmark FPS no Orange Pi
+16. Testar pipeline completo: captura → processamento → fila → central
 
 ## Tarefas técnicas pendentes
 

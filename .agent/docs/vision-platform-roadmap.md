@@ -255,5 +255,6 @@ Adotar arquitetura **Local → Central → GeoFissura**, mantendo o GeoFissura c
 ## Referências
 
 - [vision_platform_integrada.md](./vision_platform_integrada.md) — Proposta arquitetural completa
+- [vision-platform-processing-architecture.md](./vision-platform-processing-architecture.md) — Arquitetura de processamento de visão computacional (fissuras, EPI, placas, tecidos, contagem, rastreamento)
 - [architecture.md](./architecture.md) — Arquitetura técnica do GeoFissura
 - [integrations.md](./integrations.md) — Integrações IoT atuais
